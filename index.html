@@ -126,6 +126,82 @@ select{
   background-size:6px 6px;
   background-repeat:no-repeat;
 }
+  /* ===== Mobile dropdown fix ===== */
+select{
+  background-color:#ffffff !important;
+  color:#111827;
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+}
+
+select::-ms-expand{display:none}
+
+select:disabled{
+  background-color:#ffffff !important;
+  color:#6b7280;
+}
+
+select:focus{
+  background-color:#ffffff !important;
+}
+
+/* ===== Mobile DATE input fix ===== */
+input[type="date"]{
+  background-color:#ffffff !important;
+  color:#111827;
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+}
+
+input[type="date"]::-webkit-date-and-time-value{
+  color:#111827;
+}
+
+input[type="date"]:focus{
+  background-color:#ffffff !important;
+}
+
+input[type="date"]:disabled{
+  background-color:#ffffff !important;
+  color:#6b7280;
+}
+select{
+  background-image:
+    linear-gradient(45deg, transparent 50%, #6b7280 50%),
+    linear-gradient(135deg, #6b7280 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) 18px,
+    calc(100% - 15px) 18px;
+  background-size:5px 5px,5px 5px;
+  background-repeat:no-repeat;
+}
+/* ===== Mobile dropdown fix ===== */
+select{
+  background-color:#ffffff !important;
+  color:#111827;
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+}
+
+/* iOS Safari fix */
+select::-ms-expand{
+  display:none;
+}
+
+/* Force white even when disabled */
+select:disabled{
+  background-color:#ffffff !important;
+  color:#6b7280;
+}
+
+/* Android focus grey override */
+select:focus{
+  background-color:#ffffff !important;
+}
+
 </style>
 </head>
 
@@ -287,5 +363,6 @@ form.onsubmit=e=>{
 
 </body>
 </html>
+
 
 
