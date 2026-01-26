@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Self Transfer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --bg:#f3f6fb;
+  --card:#ffffff;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+  --primary:#2563eb;
+  --primary-dark:#1e40af;
+  --cash:#f9fafb;
+}
+
+body{
+  margin:0;
+  font-family:"Segoe UI", Arial, sans-serif;
+  background:var(--bg);
+  padding:20px;
+  color:var(--text);
+}
+
+form{
+  max-width:440px;
+  margin:auto;
+  background:var(--card);
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 20px 40px rgba(0,0,0,.08);
+}
+
+h2{
+  text-align:center;
+  margin:0 0 16px;
+  font-weight:600;
+}
+
+h3{
+  margin:18px 0 8px;
+  font-size:15px;
+  color:var(--primary);
+}
+
+label{
+  font-size:13px;
+  font-weight:600;
+  margin-top:12px;
+  display:block;
+  color:var(--muted);
+}
+
+input,
+select,
+textarea,
+button{
+  width:100%;
+  height:44px;
+  margin-top:6px;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  box-sizing:border-box;
+  font-size:14px;
+  background:#fff;
+}
+
+/* ✅ Narration height same as inputs */
+textarea{
+  height:44px;
+  resize:none;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  outline:none;
+  border-color:var(--primary);
+  box-shadow:0 0 0 2px rgba(37,99,235,.15);
+}
+
+hr{
+  border:none;
+  border-top:1px dashed var(--border);
+  margin:20px 0;
+}
+
+button{
+  margin-top:20px;
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  font-weight:600;
+  cursor:pointer;
+}
+
+button:hover{
+  background:var(--primary-dark);
+}
+
+.amount-cash{
+  background:var(--cash);
+  font-weight:600;
+}
+
+/* Cash block */
+#cashBox{
+  margin-top:14px;
+  background:var(--cash);
+  padding:14px;
+  border-radius:14px;
+  border:1px solid var(--border);
+}
+
+#denominations{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-top:10px;
+}
+
+.denom-card{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px;
+  text-align:center;
+  font-weight:600;
+  background:#fff;
+}
+
+.denom-card input{
+  margin-top:6px;
+  height:36px;
+  text-align:center;
+  font-weight:600;
+}
+
+/* Select arrow */
+select{
+  appearance:none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #6b7280 50%),
+    linear-gradient(135deg, #6b7280 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 12px) 50%;
+  background-size:6px 6px;
+  background-repeat:no-repeat;
+}
+</style>
+</head>
+
+<body>
+
+<form id="form">
+<h2>Self Transfer</h2>
+
+<label>Date</label>
+<input type="date" id="date">
+
+<label>Narration</label>
+<textarea id="narration" placeholder="Enter narration"></textarea>
+
+<hr>
+
+<h3>From</h3>
+
+<label>Transaction Type</label>
+<select id="fromType">
+  <option value="">Select</option>
+  <option>Cash</option>
+  <option>Upi</option>
+  <option>Debit</option>
+  <option>Net</option>
+  <option>Credit</option>
+</select>
+
+<label id="fromAccLabel" style="display:none">Account</label>
+<select id="fromAccount" style="display:none"></select>
+
+<hr>
+
+<h3>To</h3>
+
+<label>Transaction Type</label>
+<select id="toType">
+  <option value="">Select</option>
+  <option>Cash</option>
+  <option>Upi</option>
+  <option>Debit</option>
+  <option>Net</option>
+  <option>Credit</option>
+</select>
+
+<label id="toAccLabel" style="display:none">Account</label>
+<select id="toAccount" style="display:none"></select>
+
+<hr>
+
+<div id="cashBox" style="display:none">
+<h3>Cash Denominations</h3>
+<div id="denominations"></div>
+</div>
+
+<label>Amount</label>
+<input type="number" id="amount">
+
+<button type="submit">Submit</button>
+</form>
+
+<script>
+date.value=new Date().toISOString().split("T")[0];
+
+const bankAccounts=[
+ "FI","HDFC Old","HDFC New","ICICI","IndusInd",
+ "Kotak","RBL","SBI"
+];
+
+const creditCards=[
+ "Axis Flipkart","Axis MyZone","Axis Neo",
+ "HDFC PhonePe","HDFC Tata Neu","HDFC Millennia",
+ "HSBC","IDFC First Millenia",
+ "ICICI Amazon","ICICI Coral","ICICI Expressions",
+ "Indusind Plat Aura EDGE","Indusind Legend",
+ "Yes Finbooster","Kotak League","Kotak Image",
+ "SBI BPCL","Standard Chartered"
+];
+
+const denoms=[500,200,100,50,20,10,5,2,1];
+const denDiv=document.getElementById("denominations");
+
+denoms.forEach(d=>{
+  denDiv.innerHTML+=`
+    <div class="denom-card">
+      ₹${d}<br>
+      <input type="number" min="0" data-d="${d}" value="0">
+    </div>`;
+});
+
+function buildAccounts(type, acc, label){
+  acc.innerHTML="";
+  if(type==="Cash" || !type){
+    acc.style.display="none";
+    label.style.display="none";
+    return;
+  }
+  const list = type==="Credit" ? creditCards : bankAccounts;
+  acc.innerHTML="<option value=''>Select</option>";
+  list.forEach(v=>acc.innerHTML+=`<option>${v}</option>`);
+  acc.style.display="block";
+  label.style.display="block";
+}
+
+function handleCash(){
+  const isCash = fromType.value==="Cash" || toType.value==="Cash";
+  cashBox.style.display=isCash?"block":"none";
+  amount.readOnly=isCash;
+  amount.classList.toggle("amount-cash",isCash);
+
+  if(!isCash){
+    amount.value="";
+    document.querySelectorAll("[data-d]").forEach(i=>i.value=0);
+  }
+}
+
+document.addEventListener("input",e=>{
+  if(e.target.dataset?.d){
+    let total=0;
+    document.querySelectorAll("[data-d]").forEach(i=>{
+      total+=Number(i.dataset.d)*Number(i.value||0);
+    });
+    amount.value=total;
+  }
+});
+
+fromType.onchange=()=>{buildAccounts(fromType.value,fromAccount,fromAccLabel);handleCash();}
+toType.onchange=()=>{buildAccounts(toType.value,toAccount,toAccLabel);handleCash();}
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydnqVfjY9D6vgkosN_O16R8BXwkS5XmnSa_Lh4Y5VM-zKxWY-clZzTdB9H8FF6YIF4/exec";
+
+form.onsubmit = e => {
+  e.preventDefault();
+
+  const payload = {
+    date: date.value,
+    narration: narration.value,
+    fromType: fromType.value,
+    fromAccount: fromType.value === "Cash" ? "Cash" : fromAccount.value,
+    toType: toType.value,
+    toAccount: toType.value === "Cash" ? "Cash" : toAccount.value,
+    amount: Number(amount.value)
+  };
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.text()) // GAS sometimes doesn't return JSON correctly
+  .then(() => {
+    alert("Self transfer saved successfully");
+    form.reset();
+    date.value = new Date().toISOString().split("T")[0];
+    cashBox.style.display = "none";
+    amount.classList.remove("amount-cash");
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Network error – check Apps Script deployment");
+  });
+};
+</script>
+
+</body>
+</html>
