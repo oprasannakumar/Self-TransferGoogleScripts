@@ -212,6 +212,10 @@ body.dark{
   --primary-dark:#4f46e5;
   --cash:#020617;
 }
+.amount-cash.negative{
+  color:#dc2626;
+  font-weight:700;
+}
 
 body.dark{
   background:var(--bg);
@@ -340,7 +344,7 @@ denoms.forEach(d=>{
   denDiv.innerHTML+=`
     <div class="denom-card">
       ₹${d}<br>
-      <input type="number" min="0" data-d="${d}" value="0">
+     <input type="number" step="1" data-d="${d}" value="0">
     </div>`;
 });
 
@@ -375,6 +379,8 @@ document.addEventListener("input",e=>{
     let total=0;
     document.querySelectorAll("[data-d]").forEach(i=>{
       total+=Number(i.dataset.d)*Number(i.value||0);
+       amount.classList.toggle("negative", Number(amount.value) < 0);
+
     });
     amount.value=total;
   }
@@ -384,9 +390,12 @@ fromType.onchange=()=>{buildAccounts(fromType.value,fromAccount,fromAccLabel);ha
 toType.onchange=()=>{buildAccounts(toType.value,toAccount,toAccLabel);handleCash();}
 
 function getDenominations(){
-  const d={};
-  document.querySelectorAll("[data-d]").forEach(i=>{
-    if(Number(i.value)>0) d[i.dataset.d]=Number(i.value);
+  const d = {};
+  document.querySelectorAll("[data-d]").forEach(i => {
+    const val = Number(i.value);
+    if (val !== 0) {
+      d[i.dataset.d] = val; // allow negative & positive
+    }
   });
   return d;
 }
