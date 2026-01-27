@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Self Transfer</title>
+<title>Self Transfer (Queue Count)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -80,6 +80,7 @@ button{
   cursor:pointer;
 }
 button:hover{background:var(--primary-dark)}
+button:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .amount-cash{background:var(--cash);font-weight:600}
 
@@ -115,24 +116,35 @@ button:hover{background:var(--primary-dark)}
   font-weight:600;
 }
 
-select{
-  appearance:none;
-  background-image:
-    linear-gradient(45deg, transparent 50%, #6b7280 50%),
-    linear-gradient(135deg, #6b7280 50%, transparent 50%);
-  background-position:
-    calc(100% - 18px) 50%,
-    calc(100% - 12px) 50%;
-  background-size:6px 6px;
-  background-repeat:no-repeat;
+/* Sync Indicator Styles */
+#syncStatus {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+  font-weight: 500;
+  display: none;
 }
-  /* ===== Mobile dropdown fix ===== */
+.sync-pending { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+.sync-success { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
+.sync-progress { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
+
+/* ===== Mobile dropdown fix ===== */
 select{
   background-color:#ffffff !important;
   color:#111827;
   appearance:none;
   -webkit-appearance:none;
   -moz-appearance:none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #6b7280 50%),
+    linear-gradient(135deg, #6b7280 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) 18px,
+    calc(100% - 15px) 18px;
+  background-size:5px 5px,5px 5px;
+  background-repeat:no-repeat;
 }
 
 select::-ms-expand{display:none}
@@ -167,40 +179,7 @@ input[type="date"]:disabled{
   background-color:#ffffff !important;
   color:#6b7280;
 }
-select{
-  background-image:
-    linear-gradient(45deg, transparent 50%, #6b7280 50%),
-    linear-gradient(135deg, #6b7280 50%, transparent 50%);
-  background-position:
-    calc(100% - 20px) 18px,
-    calc(100% - 15px) 18px;
-  background-size:5px 5px,5px 5px;
-  background-repeat:no-repeat;
-}
-/* ===== Mobile dropdown fix ===== */
-select{
-  background-color:#ffffff !important;
-  color:#111827;
-  appearance:none;
-  -webkit-appearance:none;
-  -moz-appearance:none;
-}
 
-/* iOS Safari fix */
-select::-ms-expand{
-  display:none;
-}
-
-/* Force white even when disabled */
-select:disabled{
-  background-color:#ffffff !important;
-  color:#6b7280;
-}
-
-/* Android focus grey override */
-select:focus{
-  background-color:#ffffff !important;
-}
 /* ===== DARK MODE ===== */
 body.dark{
   --bg:#020617;
@@ -264,16 +243,11 @@ body.dark input[type="date"]::-webkit-date-and-time-value{
   display:none;
 }
 
-/* Dropdown arrow */
+/* Dropdown arrow dark */
 body.dark select{
   background-image:
     linear-gradient(45deg, transparent 50%, #9ca3af 50%),
     linear-gradient(135deg, #9ca3af 50%, transparent 50%);
-  background-position:
-    calc(100% - 18px) 50%,
-    calc(100% - 12px) 50%;
-  background-size:6px 6px;
-  background-repeat:no-repeat;
 }
 </style>
 </head>
@@ -286,6 +260,7 @@ body.dark select{
 <label>Date</label>
 <input type="date" id="date">
 <div class="error-text" id="dateErr"></div>
+
 <label>Narration</label>
 <textarea id="narration" placeholder="Enter narration"></textarea>
 <div class="error-text" id="narrationErr"></div>
@@ -333,15 +308,154 @@ body.dark select{
 <label>Amount</label>
 <input type="number" id="amount" step="0.01" inputmode="decimal">
 <div class="error-text" id="amountErr"></div>
+
 <button type="submit">Submit</button>
+
+<div id="syncStatus"></div>
 </form>
 
 <script>
+/* ⚠️ YOUR SCRIPT URL */
+const SCRIPT_URL="https://script.google.com/macros/s/AKfycbyCOPRvcR2dQamCJa-2K_ap8AhDlInXA_cbttY55NTdp3Q8YHUhD1j9lRfTaLQRpu5p/exec";
 
 let isSubmitting = false;
 const submitBtn = document.querySelector('#form button[type="submit"]');
 
-date.value=new Date().toISOString().split("T")[0];
+/* ===== 1. INDEXED DB SETUP (OFFLINE STORAGE) ===== */
+const DB_NAME = "SelfTransferDB";
+const STORE_NAME = "transferQueue";
+let db;
+
+const initDB = () => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    
+    request.onupgradeneeded = (event) => {
+      db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
+      }
+    };
+
+    request.onsuccess = (event) => {
+      db = event.target.result;
+      resolve(db);
+      checkPendingSync(); // Check for pending items on load
+    };
+
+    request.onerror = (event) => {
+      console.error("DB Error", event);
+      reject("DB Error");
+    };
+  });
+};
+
+const saveToQueue = (data) => {
+  if(!db) return;
+  const transaction = db.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+  store.add(data);
+  
+  // After saving, immediately check count to update UI
+  transaction.oncomplete = () => {
+    checkPendingSync(); 
+  };
+};
+
+const getQueue = () => {
+  return new Promise((resolve) => {
+    const transaction = db.transaction([STORE_NAME], "readonly");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result);
+  });
+};
+
+const clearItem = (id) => {
+  const transaction = db.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+  store.delete(id);
+};
+
+/* ===== 2. SYNC LOGIC (WITH COUNT) ===== */
+const syncStatusDiv = document.getElementById("syncStatus");
+
+function updateSyncStatus(type, msg) {
+  syncStatusDiv.style.display = "block";
+  syncStatusDiv.className = ""; // clear classes
+  syncStatusDiv.textContent = msg;
+  
+  if (type === "pending") syncStatusDiv.classList.add("sync-pending");
+  if (type === "progress") syncStatusDiv.classList.add("sync-progress");
+  if (type === "success") syncStatusDiv.classList.add("sync-success");
+}
+
+async function checkPendingSync() {
+  const queue = await getQueue();
+  const count = queue.length;
+
+  if (count > 0) {
+    if (navigator.onLine) {
+      processQueue(queue);
+    } else {
+      // ⚠️ SHOW COUNT HERE
+      updateSyncStatus("pending", `⚠️ ${count} transfer${count > 1 ? 's' : ''} waiting for network.`);
+    }
+  } else {
+    syncStatusDiv.style.display = "none";
+  }
+}
+
+async function processQueue(queue) {
+  const count = queue.length;
+  updateSyncStatus("progress", `🔄 Syncing ${count} pending item${count > 1 ? 's' : ''}...`);
+  
+  for (const item of queue) {
+    try {
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(item)
+      });
+      // If successful, remove from DB
+      clearItem(item.id);
+    } catch (error) {
+      console.error("Sync failed for item", item, error);
+      // Update status to show it failed but still pending
+      const remaining = await getQueue();
+      updateSyncStatus("pending", `⚠️ Network error. ${remaining.length} items pending.`);
+      return; 
+    }
+  }
+  
+  // Check remaining
+  const remaining = await getQueue();
+  if (remaining.length === 0) {
+    updateSyncStatus("success", "✅ All offline data synced successfully!");
+    setTimeout(() => syncStatusDiv.style.display = "none", 3000);
+  }
+}
+
+// Listen for network restoration
+window.addEventListener('online', checkPendingSync);
+
+// Init DB on load
+initDB();
+
+/* ===== 3. FORM UI & LOGIC ===== */
+const date = document.getElementById("date");
+const narration = document.getElementById("narration");
+const fromType = document.getElementById("fromType");
+const fromAccount = document.getElementById("fromAccount");
+const fromAccLabel = document.getElementById("fromAccLabel");
+const toType = document.getElementById("toType");
+const toAccount = document.getElementById("toAccount");
+const toAccLabel = document.getElementById("toAccLabel");
+const cashBox = document.getElementById("cashBox");
+const amount = document.getElementById("amount");
+const denDiv = document.getElementById("denominations");
+const form = document.getElementById("form");
+
+date.value = new Date().toISOString().split("T")[0];
 
 const bankAccounts=["FI","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
 const creditCards=[
@@ -354,7 +468,6 @@ const creditCards=[
 ];
 
 const denoms=[500,200,100,50,20,10,5,2,1];
-const denDiv=document.getElementById("denominations");
 
 denoms.forEach(d=>{
   denDiv.innerHTML+=`
@@ -395,10 +508,9 @@ document.addEventListener("input",e=>{
     let total=0;
     document.querySelectorAll("[data-d]").forEach(i=>{
       total+=Number(i.dataset.d)*Number(i.value||0);
-       amount.classList.toggle("negative", Number(amount.value) < 0);
-
     });
     amount.value=total;
+    amount.classList.toggle("negative", Number(amount.value) < 0);
   }
 });
 
@@ -410,13 +522,12 @@ function getDenominations(){
   document.querySelectorAll("[data-d]").forEach(i => {
     const val = Number(i.value);
     if (val !== 0) {
-      d[i.dataset.d] = val; // allow negative & positive
+      d[i.dataset.d] = val;
     }
   });
   return d;
 }
 
-const SCRIPT_URL="https://script.google.com/macros/s/AKfycbyCOPRvcR2dQamCJa-2K_ap8AhDlInXA_cbttY55NTdp3Q8YHUhD1j9lRfTaLQRpu5p/exec";
 function showErr(id, msg){
   const el = document.getElementById(id);
   el.textContent = msg;
@@ -475,7 +586,6 @@ function validateForm(){
     valid = false;
   }
 
-  // Same From & To validation
   if(
     fromType.value &&
     toType.value &&
@@ -488,6 +598,7 @@ function validateForm(){
 
   return valid;
 }
+
 document.addEventListener("input", e=>{
   const map = {
     date:"dateErr",
@@ -501,67 +612,77 @@ document.addEventListener("input", e=>{
   if(map[e.target.id]) clearErr(map[e.target.id]);
 });
 
-form.onsubmit = e => {
+/* ===== 4. SUBMIT HANDLER ===== */
+form.onsubmit = async e => {
   e.preventDefault();
 
-  if(!validateForm()) return;   // ⬅️ inline validation gate
-
-  /* 🔒 Duplicate submission protection */
+  if(!validateForm()) return;
   if (isSubmitting) return;
 
-  /* 🌐 Offline protection */
-  if (!navigator.onLine) {
-    alert("No internet connection. Self transfer not saved.");
-    return;
-  }
+  // CONSTRUCT PAYLOAD
+  const payload = {
+    date: date.value,
+    narration: narration.value,
+    fromType: fromType.value,
+    fromAccount: fromType.value === "Cash" ? "Cash" : fromAccount.value,
+    toType: toType.value,
+    toAccount: toType.value === "Cash" ? "Cash" : toAccount.value,
+    amount: Number(amount.value || 0),
+    denominations: getDenominations()
+  };
 
   isSubmitting = true;
   submitBtn.disabled = true;
-  submitBtn.textContent = "Saving...";
+  submitBtn.textContent = "Processing...";
 
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      date: date.value,
-      narration: narration.value,
-      fromType: fromType.value,
-      fromAccount: fromType.value === "Cash" ? "Cash" : fromAccount.value,
-      toType: toType.value,
-      toAccount: toType.value === "Cash" ? "Cash" : toAccount.value,
-      amount: Number(amount.value || 0),
-      denominations: getDenominations()
-    })
-  })
-  .then(r => {
-    if (!r.ok) throw new Error("Network error");
-    return r.text();
-  })
-  .then(() => {
-    alert("Self transfer saved");
-
+  const resetFormUI = () => {
     form.reset();
     date.value = new Date().toISOString().split("T")[0];
-
     cashBox.style.display = "none";
     amount.classList.remove("amount-cash");
-
     document.querySelectorAll("[data-d]").forEach(i => i.value = 0);
-  })
-  .catch(() => {
-    alert("Error saving self transfer. Please try again.");
-  })
-  .finally(() => {
+  };
+
+  // LOGIC SPLIT: ONLINE vs OFFLINE
+  if (!navigator.onLine) {
+    // Offline
+    saveToQueue(payload);
+    // Note: checkPendingSync is called inside saveToQueue
+    resetFormUI();
     resetSubmitState();
-  });
+  } else {
+    // Online
+    try {
+      const r = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      
+      if (!r.ok) throw new Error("Network error");
+      await r.text(); 
+      
+      alert("Self transfer saved");
+      resetFormUI();
+      
+    } catch (err) {
+      console.error("Online submit failed", err);
+      // Fallback to offline save
+      saveToQueue(payload);
+      alert("❌ Connection unstable.\nSaved offline.");
+      resetFormUI();
+    } finally {
+      resetSubmitState();
+    }
+  }
 };
 
-/* 🔁 Reset submit safely */
 function resetSubmitState() {
   isSubmitting = false;
   submitBtn.disabled = false;
   submitBtn.textContent = "Submit";
 }
-/* ===== Double Tap / Double Click Theme Toggle ===== */
+
+/* Double Tap Theme Toggle */
 let lastTap = 0;
 const selfForm = document.getElementById("form");
 
@@ -576,4 +697,3 @@ selfForm.addEventListener("click", () => {
 
 </body>
 </html>
-
