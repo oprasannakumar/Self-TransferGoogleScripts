@@ -317,6 +317,10 @@ body.dark select{
 </form>
 
 <script>
+
+let isSubmitting = false;
+const submitBtn = document.querySelector('#form button[type="submit"]');
+
 date.value=new Date().toISOString().split("T")[0];
 
 const bankAccounts=["FI","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
@@ -389,31 +393,64 @@ function getDenominations(){
 
 const SCRIPT_URL="https://script.google.com/macros/s/AKfycbz4Xjihh_j0RrU88UPbudgZ7dk3eziBZPEHpiT2yOfRGNQ__WW4Yj71aEv2u_9MVdZM/exec";
 
-form.onsubmit=e=>{
+form.onsubmit = e => {
   e.preventDefault();
 
-  fetch(SCRIPT_URL,{
-    method:"POST",
-    body:JSON.stringify({
-      date:date.value,
-      narration:narration.value,
-      fromType:fromType.value,
-      fromAccount:fromType.value==="Cash"?"Cash":fromAccount.value,
-      toType:toType.value,
-      toAccount:toType.value==="Cash"?"Cash":toAccount.value,
-      amount:Number(amount.value),
-      denominations:getDenominations()
+  /* 🔒 Duplicate submission protection */
+  if (isSubmitting) return;
+
+  /* 🌐 Offline protection */
+  if (!navigator.onLine) {
+    alert("No internet connection. Self transfer not saved.");
+    return;
+  }
+
+  isSubmitting = true;
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Saving...";
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      date: date.value,
+      narration: narration.value,
+      fromType: fromType.value,
+      fromAccount: fromType.value === "Cash" ? "Cash" : fromAccount.value,
+      toType: toType.value,
+      toAccount: toType.value === "Cash" ? "Cash" : toAccount.value,
+      amount: Number(amount.value || 0),
+      denominations: getDenominations()
     })
   })
-  .then(()=> {
-    alert("Self transfer saved");
-    form.reset();
-    date.value=new Date().toISOString().split("T")[0];
-    cashBox.style.display="none";
-    amount.classList.remove("amount-cash");
+  .then(r => {
+    if (!r.ok) throw new Error("Network error");
+    return r.text();
   })
-  .catch(()=>alert("Network error"));
+  .then(() => {
+    alert("Self transfer saved");
+
+    form.reset();
+    date.value = new Date().toISOString().split("T")[0];
+
+    cashBox.style.display = "none";
+    amount.classList.remove("amount-cash");
+
+    document.querySelectorAll("[data-d]").forEach(i => i.value = 0);
+  })
+  .catch(() => {
+    alert("Error saving self transfer. Please try again.");
+  })
+  .finally(() => {
+    resetSubmitState();
+  });
 };
+
+/* 🔁 Reset submit safely */
+function resetSubmitState() {
+  isSubmitting = false;
+  submitBtn.disabled = false;
+  submitBtn.textContent = "Submit";
+}
 /* ===== Double Tap / Double Click Theme Toggle ===== */
 let lastTap = 0;
 const selfForm = document.getElementById("form");
@@ -429,5 +466,4 @@ selfForm.addEventListener("click", () => {
 
 </body>
 </html>
-
 
