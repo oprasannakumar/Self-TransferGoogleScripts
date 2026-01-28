@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Self Transfer (Clean & Centered)</title>
+<title>Self Transfer (Network Logic Fixed)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -25,7 +25,6 @@ h2 { text-align: center; margin: 0 0 16px; font-weight: 600; color: #111827; }
 h3 { margin: 18px 0 8px; font-size: 14px; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; }
 label { font-size: 13px; font-weight: 600; margin-top: 14px; display: block; color: #374151; }
 
-/* Uniform height for all inputs including narration */
 input, select, button {
   width: 100%; height: 44px; margin-top: 6px; padding: 0 14px;
   border-radius: 10px; border: 1px solid #d1d5db; font-size: 14px; box-sizing: border-box;
@@ -33,7 +32,6 @@ input, select, button {
 
 input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
 
-/* Validation Styles */
 .was-validated input:invalid, .was-validated select:invalid,
 input.manual-invalid { border-color: var(--danger); background-color: #fffafb; }
 .err-msg { color: var(--danger); font-size: 11px; margin-top: 4px; display: none; font-weight: 500; }
@@ -46,19 +44,16 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 hr { border: none; border-top: 1px dashed #e5e7eb; margin: 20px 0; }
 .hidden { display: none !important; }
 
-/* Cash Grid */
 #cashBox { margin-top: 14px; background: #f9fafb; padding: 14px; border-radius: 14px; border: 1px solid #e5e7eb; }
 #denominations { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .denom-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 5px; text-align: center; }
 .denom-label { font-weight: 600; margin-bottom: 5px; font-size: 11px; color: #6b7280; }
 .denom-card input { height: 32px; text-align: center; margin-top: 0; border-radius: 6px; }
 
-/* Sync Wrapper Side-by-Side */
 .sync-wrapper { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; }
 #syncIndicator { font-size: 12px; color: #4b5563; font-weight: 600; background: #f3f4f6; padding: 6px 12px; border-radius: 20px; white-space: nowrap; }
 #btnViewQueue { width: auto; height: 32px; font-size: 11px; background: #fff; color: #374151; border: 1px solid #d1d5db; padding: 0 12px; margin-top: 0; cursor: pointer; border-radius: 8px; font-weight: 600; }
 
-/* Modal & Center-Aligned Table */
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; display: flex; justify-content: center; align-items: center; }
 .modal-content { background: #fff; width: 95%; max-width: 850px; max-height: 85vh; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; padding: 10px 20px; }
@@ -69,7 +64,6 @@ hr { border: none; border-top: 1px dashed #e5e7eb; margin: 20px 0; }
 table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 750px; table-layout: fixed; }
 th { background: #f8fafc; color: #64748b; font-weight: 600; text-align: center; padding: 10px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; font-size: 10px; }
 
-/* Perfect Vertical Centering */
 td { padding: 10px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; text-align: center; color: #374151; height: 1px; }
 
 .action-cell-container { display: flex; align-items: center; justify-content: center; height: 100%; width: 100%; }
@@ -104,7 +98,7 @@ body.dark #btnViewQueue { background: #1e293b; color: #e5e7eb; border-color: #33
   <label>Transaction Type</label>
   <select id="fromType" required>
     <option value="">Select</option>
-    <option>Cash</option><option>Upi</option><option>Debit</option><option>Net</option><option>Credit</option>
+    <option>Cash</option><option>Upi</option><option>Debit</option><option>Net</option><option>Credit</option><option>Rewards</option>
   </select>
   <div class="err-msg">Select source type</div>
 
@@ -112,6 +106,8 @@ body.dark #btnViewQueue { background: #1e293b; color: #e5e7eb; border-color: #33
     <label>Source Account</label>
     <select id="fromAccount"></select>
     <div class="err-msg">Select account</div>
+    <input type="text" id="fromAccountOther" class="hidden" placeholder="Enter Platform Name" style="margin-top: 8px;">
+    <div class="err-msg">Please enter platform name</div>
   </div>
 
   <hr>
@@ -119,7 +115,7 @@ body.dark #btnViewQueue { background: #1e293b; color: #e5e7eb; border-color: #33
   <label>Transaction Type</label>
   <select id="toType" required>
     <option value="">Select</option>
-    <option>Cash</option><option>Upi</option><option>Debit</option><option>Net</option><option>Credit</option>
+    <option>Cash</option><option>Upi</option><option>Debit</option><option>Net</option><option>Credit</option><option>Rewards</option>
   </select>
   <div class="err-msg">Select destination type</div>
 
@@ -127,6 +123,8 @@ body.dark #btnViewQueue { background: #1e293b; color: #e5e7eb; border-color: #33
     <label>Destination Account</label>
     <select id="toAccount"></select>
     <div class="err-msg">Select account</div>
+    <input type="text" id="toAccountOther" class="hidden" placeholder="Enter Platform Name" style="margin-top: 8px;">
+    <div class="err-msg">Please enter platform name</div>
   </div>
 
   <div id="cashBox" class="hidden">
@@ -174,18 +172,19 @@ body.dark #btnViewQueue { background: #1e293b; color: #e5e7eb; border-color: #33
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx39dbIPERACLJMzAislJSM5onv_0yDu6NO0WlEo_xBA9yhWn4Khtu54i1uOGXTljGG/exec";
 let isSubmitting = false;
 
-const selfForm = document.getElementById("form"), date = document.getElementById("date"), narration = document.getElementById("narration"), fromType = document.getElementById("fromType"), fromAccount = document.getElementById("fromAccount"), toType = document.getElementById("toType"), toAccount = document.getElementById("toAccount"), amount = document.getElementById("amount"), cashBox = document.getElementById("cashBox"), denDiv = document.getElementById("denominations"), submitBtn = document.getElementById("submitBtn");
+const selfForm = document.getElementById("form"), date = document.getElementById("date"), narration = document.getElementById("narration"), fromType = document.getElementById("fromType"), fromAccount = document.getElementById("fromAccount"), fromAccountOther = document.getElementById("fromAccountOther"), toType = document.getElementById("toType"), toAccount = document.getElementById("toAccount"), toAccountOther = document.getElementById("toAccountOther"), amount = document.getElementById("amount"), cashBox = document.getElementById("cashBox"), denDiv = document.getElementById("denominations"), submitBtn = document.getElementById("submitBtn");
 const syncIndicator = document.getElementById("syncIndicator"), btnViewQueue = document.getElementById("btnViewQueue"), queueModal = document.getElementById("queueModal"), queueTableBody = document.getElementById("queueTableBody"), closeModal = document.querySelector(".close-modal");
 
 const bankAccounts=["FI","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
 const creditCards=["Axis Flipkart","Axis MyZone","Axis Neo","HDFC PhonePe","HDFC Tata Neu","HDFC Millennia","HSBC","IDFC First Millenia","ICICI Amazon","ICICI Coral","ICICI Expressions","Indusind Plat Aura EDGE","Indusind Legend","Yes Finbooster","Kotak League","Kotak Image","SBI BPCL","Standard Chartered"];
+const rewardPlatforms=["Amazon", "Flipkart", "Supermoney", "Payzapp", "MobiKwik", "Tata Neu", "Others"];
 
 const DB_NAME = "SelfTransferDB", STORE_NAME = "transferQueue";
 let db;
 (function initDB(){
   const req = indexedDB.open(DB_NAME, 1);
   req.onupgradeneeded = e => e.target.result.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
-  req.onsuccess = e => { db = e.target.result; updatePendingCount(); if(navigator.onLine) syncOffline(); };
+  req.onsuccess = e => { db = e.target.result; updatePendingCount(); syncOffline(); };
 })();
 
 async function updatePendingCount(){
@@ -195,7 +194,7 @@ async function updatePendingCount(){
     const items = tx.result;
     syncIndicator.classList.toggle("hidden", !items.length);
     btnViewQueue.classList.toggle("hidden", !items.length);
-    if(items.length) syncIndicator.textContent = `⏳ ${items.length} items waiting to sync`;
+    if(items.length) syncIndicator.textContent = `⏳ ${items.length} items in queue`;
   };
 }
 
@@ -205,13 +204,19 @@ denoms.forEach(d=>{
   denDiv.innerHTML+=`<div class="denom-card"><div class="denom-label">₹${d}</div><input type="number" data-d="${d}" value="0"></div>`;
 });
 
-function buildAccounts(type, select, block){
+function buildAccounts(type, select, block, otherInput){
   select.innerHTML = "<option value=''>Select Account</option>";
   const isCash = type === "Cash" || !type;
   block.classList.toggle("hidden", isCash);
   select.required = !isCash;
+  otherInput.classList.add("hidden");
+  otherInput.required = false;
+
   if(!isCash) {
-    const list = type === "Credit" ? creditCards : bankAccounts;
+    let list = [];
+    if(type === "Credit") list = creditCards;
+    else if(type === "Rewards") list = rewardPlatforms;
+    else list = bankAccounts;
     list.forEach(v => select.add(new Option(v, v)));
   }
 }
@@ -222,8 +227,20 @@ function calcCash(){
   if(fromType.value === "Cash" || toType.value === "Cash") amount.value = total;
 }
 
-fromType.onchange = () => { buildAccounts(fromType.value, fromAccount, document.getElementById("fromAccBlock")); cashBox.classList.toggle("hidden", fromType.value!=="Cash" && toType.value!=="Cash"); amount.readOnly = (fromType.value==="Cash"||toType.value==="Cash"); };
-toType.onchange = () => { buildAccounts(toType.value, toAccount, document.getElementById("toAccBlock")); cashBox.classList.toggle("hidden", fromType.value!=="Cash" && toType.value!=="Cash"); amount.readOnly = (fromType.value==="Cash"||toType.value==="Cash"); };
+fromType.onchange = () => { buildAccounts(fromType.value, fromAccount, document.getElementById("fromAccBlock"), fromAccountOther); cashBox.classList.toggle("hidden", fromType.value!=="Cash" && toType.value!=="Cash"); amount.readOnly = (fromType.value==="Cash"||toType.value==="Cash"); };
+toType.onchange = () => { buildAccounts(toType.value, toAccount, document.getElementById("toAccBlock"), toAccountOther); cashBox.classList.toggle("hidden", fromType.value!=="Cash" && toType.value!=="Cash"); amount.readOnly = (fromType.value==="Cash"||toType.value==="Cash"); };
+
+fromAccount.onchange = () => {
+    const isOther = fromAccount.value === "Others";
+    fromAccountOther.classList.toggle("hidden", !isOther);
+    fromAccountOther.required = isOther;
+};
+toAccount.onchange = () => {
+    const isOther = toAccount.value === "Others";
+    toAccountOther.classList.toggle("hidden", !isOther);
+    toAccountOther.required = isOther;
+};
+
 denDiv.addEventListener("input", calcCash);
 
 selfForm.onsubmit = async e => {
@@ -238,32 +255,48 @@ selfForm.onsubmit = async e => {
 
   const payload = {
     date: date.value, narration: narration.value,
-    fromType: fromType.value, fromAccount: fromType.value === "Cash" ? "Cash" : fromAccount.value,
-    toType: toType.value, toAccount: toType.value === "Cash" ? "Cash" : toAccount.value,
+    fromType: fromType.value, 
+    fromAccount: fromType.value === "Cash" ? "Cash" : (fromAccount.value === "Others" ? fromAccountOther.value : fromAccount.value),
+    toType: toType.value, 
+    toAccount: toType.value === "Cash" ? "Cash" : (toAccount.value === "Others" ? toAccountOther.value : toAccount.value),
     amount: val
   };
 
+  document.querySelectorAll("[data-d]").forEach(i => {
+    payload["d" + i.dataset.d] = i.value || 0;
+  });
+
   isSubmitting = true; submitBtn.textContent = "Processing...";
-  if (!navigator.onLine) {
+  
+  try {
+    // Attempt live sync first
+    await fetch(SCRIPT_URL, { 
+      method: "POST", 
+      mode: "no-cors", 
+      body: JSON.stringify(payload) 
+    });
+    alert("Transfer Saved!"); 
+    resetForm();
+  } catch (err) {
+    // If anything goes wrong, save to queue automatically
     db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).add(payload);
-    alert("Saved offline!"); resetForm();
-  } else {
-    try {
-      await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
-      alert("Transfer Saved!"); resetForm();
-    } catch {
-      db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).add(payload);
-      alert("Saved to queue."); resetForm();
-    }
+    alert("Saved to queue (Offline/Network Weak)."); 
+    resetForm();
+  } finally {
+    isSubmitting = false; 
+    submitBtn.textContent = "Submit Transfer"; 
+    updatePendingCount();
   }
-  isSubmitting = false; submitBtn.textContent = "Submit Transfer"; updatePendingCount();
 };
 
 function resetForm() {
   selfForm.reset(); selfForm.classList.remove("was-validated"); amount.classList.remove("manual-invalid");
   document.getElementById("fromAccBlock").classList.add("hidden");
   document.getElementById("toAccBlock").classList.add("hidden");
+  fromAccountOther.classList.add("hidden");
+  toAccountOther.classList.add("hidden");
   cashBox.classList.add("hidden"); date.value = new Date().toISOString().split("T")[0];
+  document.querySelectorAll("[data-d]").forEach(i => i.value = 0);
 }
 
 function renderQueueTable() {
@@ -297,18 +330,23 @@ btnViewQueue.onclick = () => { renderQueueTable(); queueModal.classList.remove("
 closeModal.onclick = () => queueModal.classList.add("hidden");
 
 async function syncOffline(){
-  if (!navigator.onLine || !db) return;
+  if (!db) return;
   const request = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).getAll();
   request.onsuccess = async () => {
     const items = request.result;
     for (const item of items) {
-      try { await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(item) }); db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).delete(item.id); } 
+      try { 
+        await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(item) }); 
+        db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).delete(item.id); 
+      } 
       catch { break; }
     }
     updatePendingCount();
   };
 }
 
+// Check every 30 seconds if we can sync
+setInterval(syncOffline, 30000);
 window.addEventListener('online', syncOffline);
 document.addEventListener("dblclick", () => document.body.classList.toggle("dark"));
 </script>
