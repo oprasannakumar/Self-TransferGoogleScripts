@@ -272,7 +272,7 @@ const rewardPlatforms=["Amazon", "Flipkart", "Supermoney", "Payzapp", "MobiKwik"
 date.value = new Date().toISOString().split("T")[0];
 const denoms=[500,200,100,50,20,10,5,2,1];
 denoms.forEach(d=>{
-  denDiv.innerHTML+=`<div class="denom-card"><div class="denom-label">₹${d}</div><input type="number" data-d="${d}" value="0"></div>`;
+  denDiv.innerHTML+=`<div class="denom-card"><div class="denom-label">₹${d}</div><input type="number" data-d="${d}" placeholder="0"></div>`;
 });
 
 function buildAccounts(type, select, block, otherInput){
