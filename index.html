@@ -77,6 +77,15 @@ h2 { margin: 0; font-weight: 600; color: var(--text-main); font-size: 20px; flex
   flex-shrink: 0;
 }
 
+/* Batch Mode Styles */
+.batch-control { display: flex; align-items: center; justify-content: space-between; background: rgba(37, 99, 235, 0.1); padding: 8px 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--primary); }
+.switch { position: relative; display: inline-block; width: 40px; height: 22px; margin-top:-1px;}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 22px; }
+.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--primary); }
+input:checked + .slider:before { transform: translateX(18px); }
+
 h3 { margin: 18px 0 8px; font-size: 14px; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; }
 label { font-size: 13px; font-weight: 600; margin-top: 14px; display: block; color: var(--text-label); }
 
@@ -93,13 +102,12 @@ input.manual-invalid { border-color: var(--danger); background-color: rgba(239, 
 .err-msg { color: var(--danger); font-size: 11px; margin-top: 4px; display: none; font-weight: 500; }
 .was-validated :invalid ~ .err-msg, .manual-invalid ~ .err-msg { display: block; }
 
-/* Buttons same line fix */
 .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
 
-#submitBtn, .btn-confirm { background: var(--primary); color: #fff; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 20px; }
+#submitBtn, .btn-confirm { background: var(--primary); color: #fff; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 0; }
 #submitBtn:hover:not(:disabled), .btn-confirm:hover { background: var(--primary-hover); }
 
-.btn-cancel { background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color); font-weight: 600; cursor: pointer; margin-top: 0; }
+#btnRepeat, .btn-cancel { background: var(--bg-input); color: var(--text-main); border: 1.5px solid var(--border-color); font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;margin-top: 0;}
 
 hr { border: none; border-top: 1px dashed var(--border-color); margin: 20px 0; }
 .hidden { display: none !important; }
@@ -129,12 +137,15 @@ table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 750p
 th { background: var(--bg-body); color: var(--text-label); font-weight: 600; text-align: center; padding: 10px; border-bottom: 1px solid var(--border-color); text-transform: uppercase; font-size: 10px; }
 td { padding: 10px; border-bottom: 1px solid var(--border-color); vertical-align: middle; text-align: center; color: var(--text-main); }
 
-.btn-del-mini { 
-  background: #fee2e2; color: #ef4444; border: none; width: 34px; height: 34px; 
+.action-btn { 
+  border: none; width: 34px; height: 34px; 
   border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  margin: 0 auto;
+  margin: 0 4px; display: inline-flex;
 }
+.btn-del-mini { background: #fee2e2; color: #ef4444; }
+.btn-edit-mini { background: #e0e7ff; color: #4338ca; }
 body.dark .btn-del-mini { background: #450a0a; color: #f87171; }
+body.dark .btn-edit-mini { background: #1e1b4b; color: #818cf8; }
 </style>
 </head>
 
@@ -145,6 +156,14 @@ body.dark .btn-del-mini { background: #450a0a; color: #f87171; }
     <div id="statusDot" title="Network Status"></div>
     <h2>Self Transfer</h2>
     <button type="button" id="themeToggle" title="Toggle Dark Mode">🌙</button>
+  </div>
+
+  <div class="batch-control">
+    <span style="font-size: 12px; font-weight: 600;">Batch Mode</span>
+    <label class="switch">
+      <input type="checkbox" id="batchToggle">
+      <span class="slider"></span>
+    </label>
   </div>
 
   <label>Date</label>
@@ -198,7 +217,10 @@ body.dark .btn-del-mini { background: #450a0a; color: #f87171; }
   <input type="number" id="amount" step="0.01" required placeholder="0.00">
   <div class="err-msg">Amount must be greater than 0</div>
 
-  <button type="submit" id="submitBtn">Submit Transfer</button>
+  <div class="btn-group">
+    <button type="submit" id="submitBtn">Submit Transfer</button>
+    <button type="button" id="btnRepeat">↺ Repeat Last</button>
+  </div>
 
   <div class="sync-wrapper">
     <div id="syncIndicator" class="hidden"></div>
@@ -232,7 +254,7 @@ body.dark .btn-del-mini { background: #450a0a; color: #f87171; }
             <th style="width:130px">From</th>
             <th style="width:130px">To</th>
             <th style="width:110px">Amount</th>
-            <th style="width:70px">Del</th>
+            <th style="width:100px">Action</th>
           </tr>
         </thead>
         <tbody id="queueTableBody"></tbody>
@@ -247,7 +269,7 @@ let isSubmitting = false;
 let currentPayload = null;
 let db;
 
-const selfForm = document.getElementById("form"), date = document.getElementById("date"), narration = document.getElementById("narration"), fromType = document.getElementById("fromType"), fromAccount = document.getElementById("fromAccount"), fromAccountOther = document.getElementById("fromAccountOther"), toType = document.getElementById("toType"), toAccount = document.getElementById("toAccount"), toAccountOther = document.getElementById("toAccountOther"), amount = document.getElementById("amount"), cashBox = document.getElementById("cashBox"), denDiv = document.getElementById("denominations"), submitBtn = document.getElementById("submitBtn");
+const selfForm = document.getElementById("form"), date = document.getElementById("date"), narration = document.getElementById("narration"), fromType = document.getElementById("fromType"), fromAccount = document.getElementById("fromAccount"), fromAccountOther = document.getElementById("fromAccountOther"), toType = document.getElementById("toType"), toAccount = document.getElementById("toAccount"), toAccountOther = document.getElementById("toAccountOther"), amount = document.getElementById("amount"), cashBox = document.getElementById("cashBox"), denDiv = document.getElementById("denominations"), submitBtn = document.getElementById("submitBtn"), batchToggle = document.getElementById("batchToggle"), btnRepeat = document.getElementById("btnRepeat");
 const syncIndicator = document.getElementById("syncIndicator"), btnViewQueue = document.getElementById("btnViewQueue"), queueModal = document.getElementById("queueModal"), queueTableBody = document.getElementById("queueTableBody"), closeModal = document.querySelector(".close-modal");
 const themeToggle = document.getElementById("themeToggle"), statusDot = document.getElementById("statusDot");
 const confirmModal = document.getElementById("confirmModal"), confirmDetails = document.getElementById("confirmDetails");
@@ -313,6 +335,7 @@ function buildAccounts(type, select, block, otherInput){
   if(!isCash) {
     let list = (type === "Credit") ? creditCards : (type === "Rewards" ? rewardPlatforms : bankAccounts);
     list.forEach(v => select.add(new Option(v, v)));
+    select.add(new Option("Others", "Others"));
   }
 }
 
@@ -338,8 +361,7 @@ selfForm.onsubmit = async e => {
   amount.classList.toggle("manual-invalid", !isAmtValid);
 
   if(!selfForm.checkValidity() || !isAmtValid) return;
-  if(isSubmitting) return;
-
+  
   const fAcc = fromType.value === "Cash" ? "Cash" : (fromAccount.value === "Others" ? fromAccountOther.value : fromAccount.value);
   const tAcc = toType.value === "Cash" ? "Cash" : (toAccount.value === "Others" ? toAccountOther.value : toAccount.value);
 
@@ -347,10 +369,24 @@ selfForm.onsubmit = async e => {
     date: date.value, narration: narration.value,
     fromType: fromType.value, fromAccount: fAcc,
     toType: toType.value, toAccount: tAcc,
-    amount: val
+    amount: val,
+    denominations: {}
   };
-  document.querySelectorAll("[data-d]").forEach(i => currentPayload["d" + i.dataset.d] = i.value || 0);
+  document.querySelectorAll("[data-d]").forEach(i => {
+      const dVal = i.value || 0;
+      currentPayload["d" + i.dataset.d] = dVal;
+      currentPayload.denominations["d" + i.dataset.d] = dVal;
+  });
 
+  localStorage.setItem("lastTransfer", JSON.stringify(currentPayload));
+
+  if (!navigator.onLine || batchToggle.checked) {
+    saveToDB();
+    alert(batchToggle.checked ? "Batch Mode: Saved to queue." : "Offline: Saved to queue."); 
+    return;
+  }
+
+  // Confirmation for online non-batch mode
   let detailsHtml = `
     <div class="confirm-item"><span class="confirm-label">Date</span><span class="confirm-val">${currentPayload.date}</span></div>
     <div class="confirm-item"><span class="confirm-label">Narration</span><span class="confirm-val">${currentPayload.narration}</span></div>
@@ -358,7 +394,6 @@ selfForm.onsubmit = async e => {
     <div class="confirm-item"><span class="confirm-label">To</span><span class="confirm-val">${currentPayload.toType} (${currentPayload.toAccount})</span></div>
     <div class="confirm-item" style="border:none"><span class="confirm-label" style="color:var(--primary)">Total Amount</span><span class="confirm-val" style="color:var(--primary); font-weight:bold">₹${currentPayload.amount.toFixed(2)}</span></div>
   `;
-
   if (fromType.value === "Cash" || toType.value === "Cash") {
     detailsHtml += `<div class="confirm-section-title">Cash Matrix</div><div class="confirm-matrix">`;
     denoms.forEach(d => {
@@ -367,13 +402,7 @@ selfForm.onsubmit = async e => {
     detailsHtml += `</div>`;
   }
   confirmDetails.innerHTML = detailsHtml;
-
-  if (!navigator.onLine) {
-    saveToDB();
-    alert("Saved to queue (Offline)."); 
-  } else {
-    confirmModal.classList.remove("hidden");
-  }
+  confirmModal.classList.remove("hidden");
 };
 
 async function executeSubmit() {
@@ -403,8 +432,42 @@ function saveToDB() {
     updatePendingCount();
 }
 
-document.getElementById("btnConfirmFinal").onclick = executeSubmit;
-document.getElementById("btnConfirmCancel").onclick = () => confirmModal.classList.add("hidden");
+btnRepeat.onclick = () => {
+    const last = JSON.parse(localStorage.getItem("lastTransfer"));
+    if(!last) return alert("No recent transfer found.");
+    narration.value = last.narration;
+    fromType.value = last.fromType;
+    fromType.dispatchEvent(new Event('change'));
+    if(last.fromType !== "Cash"){
+        if(bankAccounts.concat(creditCards, rewardPlatforms).includes(last.fromAccount)){
+            fromAccount.value = last.fromAccount;
+        } else {
+            fromAccount.value = "Others";
+            fromAccount.dispatchEvent(new Event('change'));
+            fromAccountOther.value = last.fromAccount;
+        }
+    }
+    toType.value = last.toType;
+    toType.dispatchEvent(new Event('change'));
+    if(last.toType !== "Cash"){
+        if(bankAccounts.concat(creditCards, rewardPlatforms).includes(last.toAccount)){
+            toAccount.value = last.toAccount;
+        } else {
+            toAccount.value = "Others";
+            toAccount.dispatchEvent(new Event('change'));
+            toAccountOther.value = last.toAccount;
+        }
+    }
+    if(last.fromType === "Cash" || last.toType === "Cash"){
+        denoms.forEach(d => {
+            const input = document.querySelector(`[data-d="${d}"]`);
+            if(input) input.value = last["d" + d] || 0;
+        });
+        calcCash();
+    } else {
+        amount.value = last.amount;
+    }
+};
 
 function resetForm() {
   selfForm.reset(); selfForm.classList.remove("was-validated"); amount.classList.remove("manual-invalid");
@@ -412,6 +475,7 @@ function resetForm() {
   fromAccountOther.classList.add("hidden"); toAccountOther.classList.add("hidden");
   cashBox.classList.add("hidden"); date.value = new Date().toISOString().split("T")[0];
   document.querySelectorAll("[data-d]").forEach(i => i.value = 0);
+  batchToggle.checked = false;
 }
 
 function renderQueueTable() {
@@ -428,7 +492,10 @@ function renderQueueTable() {
         <td>${item.fromType}<br><small style="color:#94a3b8">(${item.fromAccount})</small></td>
         <td>${item.toType}<br><small style="color:#94a3b8">(${item.toAccount})</small></td>
         <td style="font-weight:700">₹${item.amount.toFixed(2)}</td>
-        <td><div class="action-cell-container"><button class="btn-del-mini" onclick="deleteItem(${item.id})">🗑️</button></div></td>`;
+        <td>
+          <button class="action-btn btn-edit-mini" onclick="editItem(${item.id})">✏️</button>
+          <button class="action-btn btn-del-mini" onclick="deleteItem(${item.id})">🗑️</button>
+        </td>`;
       queueTableBody.appendChild(tr);
     });
   };
@@ -443,11 +510,59 @@ window.deleteItem = id => {
   }
 };
 
+window.editItem = id => {
+    const tx = db.transaction("transferQueue", "readonly").objectStore("transferQueue").get(id);
+    tx.onsuccess = () => {
+        const item = tx.result;
+        date.value = item.date;
+        narration.value = item.narration;
+        fromType.value = item.fromType;
+        fromType.dispatchEvent(new Event('change'));
+        if(item.fromType !== "Cash"){
+            if(bankAccounts.concat(creditCards, rewardPlatforms).includes(item.fromAccount)){
+                fromAccount.value = item.fromAccount;
+            } else {
+                fromAccount.value = "Others";
+                fromAccount.dispatchEvent(new Event('change'));
+                fromAccountOther.value = item.fromAccount;
+            }
+        }
+        toType.value = item.toType;
+        toType.dispatchEvent(new Event('change'));
+        if(item.toType !== "Cash"){
+            if(bankAccounts.concat(creditCards, rewardPlatforms).includes(item.toAccount)){
+                toAccount.value = item.toAccount;
+            } else {
+                toAccount.value = "Others";
+                toAccount.dispatchEvent(new Event('change'));
+                toAccountOther.value = item.toAccount;
+            }
+        }
+        if(item.fromType === "Cash" || item.toType === "Cash"){
+            denoms.forEach(d => {
+                const input = document.querySelector(`[data-d="${d}"]`);
+                if(input) input.value = item["d" + d] || 0;
+            });
+            calcCash();
+        } else {
+            amount.value = item.amount;
+        }
+        // Remove from DB after loading into form
+        db.transaction("transferQueue", "readwrite").objectStore("transferQueue").delete(id).onsuccess = () => {
+            queueModal.classList.add("hidden");
+            updatePendingCount();
+        };
+    };
+};
+
+document.getElementById("btnConfirmFinal").onclick = executeSubmit;
+document.getElementById("btnConfirmCancel").onclick = () => confirmModal.classList.add("hidden");
+
 btnViewQueue.onclick = () => { renderQueueTable(); queueModal.classList.remove("hidden"); };
 closeModal.onclick = () => queueModal.classList.add("hidden");
 
 async function syncOffline(){
-  if (!db || !navigator.onLine) return;
+  if (!db || !navigator.onLine || batchToggle.checked) return;
   const tx = db.transaction("transferQueue", "readonly");
   const store = tx.objectStore("transferQueue");
   const request = store.getAll();
