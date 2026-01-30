@@ -426,19 +426,39 @@ selfForm.onsubmit = async e => {
 };
 
 async function executeSubmit() {
-  if(!currentPayload) return;
+  if(!currentPayload || isSubmitting) return; // Prevent double trigger
+  
   confirmModal.classList.add("hidden");
-  isSubmitting = true; submitBtn.textContent = "Processing...";
+  isSubmitting = true;
+  
+  // Disable the button and show loading state
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Processing... Please wait";
+  submitBtn.style.opacity = "0.7";
+  submitBtn.style.cursor = "not-allowed";
+
   try {
-    await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(currentPayload) });
-    alert("Transfer Saved!"); resetForm();
+    const response = await fetch(SCRIPT_URL, { 
+      method: "POST", 
+      mode: "no-cors", 
+      body: JSON.stringify(currentPayload) 
+    });
+    
+    alert("Transfer Saved Successfully!");
+    resetForm();
   } catch (err) {
-    saveToDB(); alert("Network issue. Saved to queue."); 
+    saveToDB(); 
+    alert("Network issue. Saved to local queue for later sync."); 
   } finally {
-    isSubmitting = false; submitBtn.textContent = "Submit Transfer"; updatePendingCount();
+    isSubmitting = false;
+    // Re-enable the button
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Submit Transfer";
+    submitBtn.style.opacity = "1";
+    submitBtn.style.cursor = "pointer";
+    updatePendingCount();
   }
 }
-
 function saveToDB() {
     if(!db) return;
     db.transaction("transferQueue", "readwrite").objectStore("transferQueue").add(currentPayload);
@@ -518,7 +538,13 @@ async function manualSync() {
   if (!navigator.onLine) return alert("Internet required to sync.");
   if (!confirm("Start syncing all pending items?")) return;
 
+  const syncBtn = document.getElementById("btnSyncAll");
   const syncText = document.getElementById("syncText");
+  
+  // Disable button
+  syncBtn.disabled = true;
+  syncBtn.style.opacity = "0.7";
+
   const tx = db.transaction("transferQueue", "readonly");
   const store = tx.objectStore("transferQueue");
   const items = await new Promise(res => { store.getAll().onsuccess = e => res(e.target.result); });
@@ -532,11 +558,14 @@ async function manualSync() {
       });
       updatePendingCount();
     } catch (e) {
-      alert("Sync interrupted.");
+      alert("Sync interrupted due to network error.");
       break;
     }
   }
+  
   syncText.textContent = "☁️ Sync All";
+  syncBtn.disabled = false;
+  syncBtn.style.opacity = "1";
 }
 
 document.getElementById("btnConfirmFinal").onclick = executeSubmit;
