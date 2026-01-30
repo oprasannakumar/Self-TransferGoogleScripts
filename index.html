@@ -37,12 +37,15 @@ body {
   transition: background 0.3s;
 }
 
-form {
+form, .confirm-card {
   background: var(--bg-card); max-width: 440px; margin: auto; padding: 22px;
   border-radius: 16px; box-shadow: 0 18px 40px rgba(0,0,0,.08);
   border: 1px solid var(--border-color);
   position: relative;
 }
+
+/* Wider confirmation block */
+.confirm-card { max-width: 550px; width: 95%; }
 
 .header-row-top {
   display: flex;
@@ -90,26 +93,36 @@ input.manual-invalid { border-color: var(--danger); background-color: rgba(239, 
 .err-msg { color: var(--danger); font-size: 11px; margin-top: 4px; display: none; font-weight: 500; }
 .was-validated :invalid ~ .err-msg, .manual-invalid ~ .err-msg { display: block; }
 
-#submitBtn { background: var(--primary); color: #fff; border: none; margin-top: 20px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-#submitBtn:hover:not(:disabled) { background: var(--primary-hover); }
+/* Buttons same line fix */
+.btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
+
+#submitBtn, .btn-confirm { background: var(--primary); color: #fff; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 20px; }
+#submitBtn:hover:not(:disabled), .btn-confirm:hover { background: var(--primary-hover); }
+
+.btn-cancel { background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color); font-weight: 600; cursor: pointer; margin-top: 0; }
 
 hr { border: none; border-top: 1px dashed var(--border-color); margin: 20px 0; }
 .hidden { display: none !important; }
 
 #cashBox { margin-top: 14px; background: var(--bg-body); padding: 14px; border-radius: 14px; border: 1px solid var(--border-color); }
-#denominations { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.denom-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 5px; text-align: center; }
-.denom-label { font-weight: 600; margin-bottom: 5px; font-size: 11px; color: var(--text-muted); }
+#denominations, .confirm-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.denom-card, .confirm-matrix-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 5px; text-align: center; }
+.denom-label, .matrix-label { font-weight: 600; margin-bottom: 5px; font-size: 11px; color: var(--text-muted); }
 .denom-card input { height: 32px; text-align: center; margin-top: 0; border-radius: 6px; }
 
 .sync-wrapper { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; }
 #syncIndicator { font-size: 12px; color: var(--text-label); font-weight: 600; background: var(--bg-input); padding: 6px 12px; border-radius: 20px; white-space: nowrap; border: 1px solid var(--border-color); }
 #btnViewQueue { width: auto; height: 32px; font-size: 11px; background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); padding: 0 12px; margin-top: 0; cursor: pointer; border-radius: 8px; font-weight: 600; }
 
-.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; display: flex; justify-content: center; align-items: center; }
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; }
 .modal-content { background: var(--bg-card); color: var(--text-main); width: 95%; max-width: 850px; max-height: 85vh; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-color); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 10px 20px; }
 .close-modal { font-size: 24px; cursor: pointer; color: var(--text-label); }
+
+.confirm-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+.confirm-label { font-weight: 600; color: var(--text-label); }
+.confirm-val { color: var(--text-main); text-align: right; font-weight: 500; }
+.confirm-section-title { font-size: 12px; font-weight: 700; color: var(--primary); margin: 15px 0 5px 0; text-transform: uppercase; border-bottom: 1px solid var(--primary); width: fit-content; padding-right: 10px; }
 
 .table-container { overflow-x: auto; flex-grow: 1; background: var(--bg-card); }
 table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 750px; table-layout: fixed; }
@@ -193,6 +206,17 @@ body.dark .btn-del-mini { background: #450a0a; color: #f87171; }
   </div>
 </form>
 
+<div id="confirmModal" class="modal hidden">
+  <div class="confirm-card">
+    <h2 style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; font-size: 18px;">Confirm Details</h2>
+    <div id="confirmDetails"></div>
+    <div class="btn-group">
+      <button type="button" id="btnConfirmFinal" class="btn-confirm">Process</button>
+      <button type="button" id="btnConfirmCancel" class="btn-cancel">Edit</button>
+    </div>
+  </div>
+</div>
+
 <div id="queueModal" class="modal hidden">
   <div class="modal-content">
     <div class="modal-header">
@@ -220,12 +244,29 @@ body.dark .btn-del-mini { background: #450a0a; color: #f87171; }
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTuJ83bl1akd3bP1Tujt-QxldHEwHvQZmPYefA5E6Csshxqcd3srdOLO6n-LPZbDKkoA/exec";
 let isSubmitting = false;
+let currentPayload = null;
+let db;
 
 const selfForm = document.getElementById("form"), date = document.getElementById("date"), narration = document.getElementById("narration"), fromType = document.getElementById("fromType"), fromAccount = document.getElementById("fromAccount"), fromAccountOther = document.getElementById("fromAccountOther"), toType = document.getElementById("toType"), toAccount = document.getElementById("toAccount"), toAccountOther = document.getElementById("toAccountOther"), amount = document.getElementById("amount"), cashBox = document.getElementById("cashBox"), denDiv = document.getElementById("denominations"), submitBtn = document.getElementById("submitBtn");
 const syncIndicator = document.getElementById("syncIndicator"), btnViewQueue = document.getElementById("btnViewQueue"), queueModal = document.getElementById("queueModal"), queueTableBody = document.getElementById("queueTableBody"), closeModal = document.querySelector(".close-modal");
 const themeToggle = document.getElementById("themeToggle"), statusDot = document.getElementById("statusDot");
+const confirmModal = document.getElementById("confirmModal"), confirmDetails = document.getElementById("confirmDetails");
 
-// --- Network & Theme ---
+const bankAccounts=["FI","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
+const creditCards=["Axis Flipkart","Axis MyZone","Axis Neo","HDFC PhonePe","HDFC Tata Neu","HDFC Millennia","HSBC","IDFC First Millenia","ICICI Amazon","ICICI Coral","ICICI Expressions","Indusind Plat Aura EDGE","Indusind Legend","Yes Finbooster","Kotak League","Kotak Image","SBI BPCL","Standard Chartered"];
+const rewardPlatforms=["Amazon", "Flipkart", "Supermoney", "Payzapp", "MobiKwik", "Tata Neu", "Others"];
+const denoms=[500,200,100,50,20,10,5,2,1];
+
+(function initDB(){
+  const req = indexedDB.open("SelfTransferDB", 1);
+  req.onupgradeneeded = e => e.target.result.createObjectStore("transferQueue", { keyPath: "id", autoIncrement: true });
+  req.onsuccess = e => { 
+    db = e.target.result; 
+    updatePendingCount(); 
+    syncOffline(); 
+  };
+})();
+
 function updateStatusDot() {
   const isOnline = navigator.onLine;
   statusDot.className = isOnline ? 'online' : 'offline';
@@ -234,6 +275,17 @@ function updateStatusDot() {
 window.addEventListener('online', updateStatusDot);
 window.addEventListener('offline', updateStatusDot);
 updateStatusDot();
+
+async function updatePendingCount(){
+  if(!db) return;
+  const tx = db.transaction("transferQueue", "readonly").objectStore("transferQueue").getAll();
+  tx.onsuccess = () => {
+    const items = tx.result;
+    syncIndicator.classList.toggle("hidden", !items.length);
+    btnViewQueue.classList.toggle("hidden", !items.length);
+    if(items.length) syncIndicator.textContent = `⏳ ${items.length} items in queue`;
+  };
+}
 
 themeToggle.onclick = () => {
   const isDark = document.body.classList.toggle("dark");
@@ -245,32 +297,7 @@ if(localStorage.getItem("selfTransferTheme") === "dark") {
   themeToggle.textContent = "☀️";
 }
 
-// --- DB Logic ---
-const DB_NAME = "SelfTransferDB", STORE_NAME = "transferQueue";
-let db;
-(function initDB(){
-  const req = indexedDB.open(DB_NAME, 1);
-  req.onupgradeneeded = e => e.target.result.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
-  req.onsuccess = e => { db = e.target.result; updatePendingCount(); syncOffline(); };
-})();
-
-async function updatePendingCount(){
-  if(!db) return;
-  const tx = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).getAll();
-  tx.onsuccess = () => {
-    const items = tx.result;
-    syncIndicator.classList.toggle("hidden", !items.length);
-    btnViewQueue.classList.toggle("hidden", !items.length);
-    if(items.length) syncIndicator.textContent = `⏳ ${items.length} items in queue`;
-  };
-}
-
-const bankAccounts=["FI","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
-const creditCards=["Axis Flipkart","Axis MyZone","Axis Neo","HDFC PhonePe","HDFC Tata Neu","HDFC Millennia","HSBC","IDFC First Millenia","ICICI Amazon","ICICI Coral","ICICI Expressions","Indusind Plat Aura EDGE","Indusind Legend","Yes Finbooster","Kotak League","Kotak Image","SBI BPCL","Standard Chartered"];
-const rewardPlatforms=["Amazon", "Flipkart", "Supermoney", "Payzapp", "MobiKwik", "Tata Neu", "Others"];
-
 date.value = new Date().toISOString().split("T")[0];
-const denoms=[500,200,100,50,20,10,5,2,1];
 denoms.forEach(d=>{
   denDiv.innerHTML+=`<div class="denom-card"><div class="denom-label">₹${d}</div><input type="number" data-d="${d}" placeholder="0"></div>`;
 });
@@ -303,7 +330,6 @@ toAccount.onchange = () => { const isOther = toAccount.value === "Others"; toAcc
 
 denDiv.addEventListener("input", calcCash);
 
-// --- Submit Logic (Instant Offline detection) ---
 selfForm.onsubmit = async e => {
   e.preventDefault();
   selfForm.classList.add("was-validated");
@@ -314,44 +340,71 @@ selfForm.onsubmit = async e => {
   if(!selfForm.checkValidity() || !isAmtValid) return;
   if(isSubmitting) return;
 
-  const payload = {
+  const fAcc = fromType.value === "Cash" ? "Cash" : (fromAccount.value === "Others" ? fromAccountOther.value : fromAccount.value);
+  const tAcc = toType.value === "Cash" ? "Cash" : (toAccount.value === "Others" ? toAccountOther.value : toAccount.value);
+
+  currentPayload = {
     date: date.value, narration: narration.value,
-    fromType: fromType.value, 
-    fromAccount: fromType.value === "Cash" ? "Cash" : (fromAccount.value === "Others" ? fromAccountOther.value : fromAccount.value),
-    toType: toType.value, 
-    toAccount: toType.value === "Cash" ? "Cash" : (toAccount.value === "Others" ? toAccountOther.value : toAccount.value),
+    fromType: fromType.value, fromAccount: fAcc,
+    toType: toType.value, toAccount: tAcc,
     amount: val
   };
-  document.querySelectorAll("[data-d]").forEach(i => payload["d" + i.dataset.d] = i.value || 0);
+  document.querySelectorAll("[data-d]").forEach(i => currentPayload["d" + i.dataset.d] = i.value || 0);
 
-  // INSTANT OFFLINE CHECK
-  if (!navigator.onLine) {
-    db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).add(payload);
-    alert("Saved to queue (Offline)."); 
-    resetForm();
-    updatePendingCount();
-    return;
+  let detailsHtml = `
+    <div class="confirm-item"><span class="confirm-label">Date</span><span class="confirm-val">${currentPayload.date}</span></div>
+    <div class="confirm-item"><span class="confirm-label">Narration</span><span class="confirm-val">${currentPayload.narration}</span></div>
+    <div class="confirm-item"><span class="confirm-label">From</span><span class="confirm-val">${currentPayload.fromType} (${currentPayload.fromAccount})</span></div>
+    <div class="confirm-item"><span class="confirm-label">To</span><span class="confirm-val">${currentPayload.toType} (${currentPayload.toAccount})</span></div>
+    <div class="confirm-item" style="border:none"><span class="confirm-label" style="color:var(--primary)">Total Amount</span><span class="confirm-val" style="color:var(--primary); font-weight:bold">₹${currentPayload.amount.toFixed(2)}</span></div>
+  `;
+
+  if (fromType.value === "Cash" || toType.value === "Cash") {
+    detailsHtml += `<div class="confirm-section-title">Cash Matrix</div><div class="confirm-matrix">`;
+    denoms.forEach(d => {
+      detailsHtml += `<div class="confirm-matrix-card"><div class="matrix-label">₹${d}</div><div style="font-weight:700; font-size:12px;">${currentPayload["d"+d]}</div></div>`;
+    });
+    detailsHtml += `</div>`;
   }
+  confirmDetails.innerHTML = detailsHtml;
 
+  if (!navigator.onLine) {
+    saveToDB();
+    alert("Saved to queue (Offline)."); 
+  } else {
+    confirmModal.classList.remove("hidden");
+  }
+};
+
+async function executeSubmit() {
+  if(!currentPayload) return;
+  confirmModal.classList.add("hidden");
   isSubmitting = true; 
   submitBtn.textContent = "Processing...";
   
   try {
-    // Attempt live sync
-    await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
+    await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(currentPayload) });
     alert("Transfer Saved!"); 
     resetForm();
   } catch (err) {
-    // Network failed during request
-    db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).add(payload);
-    alert("Network failed. Saved to queue."); 
-    resetForm();
+    saveToDB();
+    alert("Network issues. Saved to queue."); 
   } finally {
     isSubmitting = false; 
     submitBtn.textContent = "Submit Transfer"; 
     updatePendingCount();
   }
-};
+}
+
+function saveToDB() {
+    if(!db) return;
+    db.transaction("transferQueue", "readwrite").objectStore("transferQueue").add(currentPayload);
+    resetForm();
+    updatePendingCount();
+}
+
+document.getElementById("btnConfirmFinal").onclick = executeSubmit;
+document.getElementById("btnConfirmCancel").onclick = () => confirmModal.classList.add("hidden");
 
 function resetForm() {
   selfForm.reset(); selfForm.classList.remove("was-validated"); amount.classList.remove("manual-invalid");
@@ -362,8 +415,9 @@ function resetForm() {
 }
 
 function renderQueueTable() {
+  if(!db) return;
   queueTableBody.innerHTML = "<tr><td colspan='6'>Refreshing...</td></tr>";
-  const tx = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).getAll();
+  const tx = db.transaction("transferQueue", "readonly").objectStore("transferQueue").getAll();
   tx.onsuccess = (e) => {
     const items = e.target.result;
     queueTableBody.innerHTML = items.length ? "" : "<tr><td colspan='6'>Queue is empty</td></tr>";
@@ -381,8 +435,9 @@ function renderQueueTable() {
 }
 
 window.deleteItem = id => {
+  if(!db) return;
   if(confirm("Delete this?")) {
-    db.transaction(STORE_NAME,"readwrite").objectStore(STORE_NAME).delete(id).onsuccess = () => {
+    db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = () => {
       renderQueueTable(); updatePendingCount();
     };
   }
@@ -393,18 +448,17 @@ closeModal.onclick = () => queueModal.classList.add("hidden");
 
 async function syncOffline(){
   if (!db || !navigator.onLine) return;
-  const tx = db.transaction(STORE_NAME, "readonly");
-  const store = tx.objectStore(STORE_NAME);
+  const tx = db.transaction("transferQueue", "readonly");
+  const store = tx.objectStore("transferQueue");
   const request = store.getAll();
 
   request.onsuccess = async () => {
     const items = request.result;
     if (!items.length) return;
-
     for (const item of items) {
       try { 
         await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(item) }); 
-        db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).delete(item.id).onsuccess = () => {
+        db.transaction("transferQueue", "readwrite").objectStore("transferQueue").delete(item.id).onsuccess = () => {
             updatePendingCount();
             if(!queueModal.classList.contains("hidden")) renderQueueTable();
         };
