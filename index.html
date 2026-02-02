@@ -1,232 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Self Transfer | Smart Sync Pro</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Self Transfer | Smart Sync Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
-:root { 
-  --primary:#2563eb; 
-  --primary-hover:#1e40af; 
-  --secondary: #10b981;
-  --danger:#ef4444; 
-  --bg-body: linear-gradient(135deg, #eef2f7, #f9fafb);
-  --bg-card: #ffffff;
-  --text-main: #111827;
-  --text-label: #374151;
-  --border-color: #d1d5db;
-  --bg-input: #ffffff;
-  --btn-h: 44px; 
-}
+    :root { 
+      --primary:#2563eb; 
+      --primary-hover:#1e40af; 
+      --secondary: #10b981;
+      --danger:#ef4444; 
+      --bg-body: linear-gradient(135deg, #eef2f7, #f9fafb);
+      --bg-card: #ffffff;
+      --text-main: #111827;
+      --text-label: #374151;
+      --border-color: #d1d5db;
+      --bg-input: #ffffff;
+      --btn-h: 44px; 
+    }
 
-body.dark { 
-  --bg-body: #020617; 
-  --bg-card: #0f172a;
-  --text-main: #f9fafb;
-  --text-label: #94a3b8;
-  --border-color: #334155;
-  --bg-input: #1e293b;
-}
+    body.dark { 
+      --bg-body: #020617; 
+      --bg-card: #0f172a;
+      --text-main: #f9fafb;
+      --text-label: #94a3b8;
+      --border-color: #334155;
+      --bg-input: #1e293b;
+    }
 
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--bg-body);
-  color: var(--text-main);
-  padding: 20px; margin: 0; min-height: 100vh;
-  transition: background 0.5s ease, color 0.5s ease;
-}
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-body);
+      color: var(--text-main);
+      padding: 20px; margin: 0; min-height: 100vh;
+      transition: background 0.5s ease, color 0.5s ease;
+    }
 
-form, .confirm-card {
-  background: var(--bg-card); max-width: 440px; margin: auto; padding: 22px;
-  border-radius: 16px; box-shadow: 0 18px 40px rgba(0,0,0,.08);
-  border: 1px solid var(--border-color);
-  position: relative;
-  transition: background 0.5s ease, border-color 0.5s ease;
-}
+    form, .confirm-card {
+      background: var(--bg-card); max-width: 440px; margin: auto; padding: 22px;
+      border-radius: 16px; box-shadow: 0 18px 40px rgba(0,0,0,.08);
+      border: 1px solid var(--border-color);
+      position: relative;
+      transition: background 0.5s ease, border-color 0.5s ease;
+    }
 
-.confirm-card { max-width: 550px; width: 75%; }
+    .confirm-card { max-width: 550px; width: 90%; }
 
-/* Perfectly centered header logic */
-.header-row-top {
-  display: flex;
-  align-items: center;
-  justify-content: center; /* Center the title */
-  margin-bottom: 20px;
-  position: relative; /* Container for absolute side buttons */
-  min-height: 32px;
-}
+    .header-row-top {
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px; position: relative; min-height: 32px;
+    }
 
-h2 { margin: 0; font-weight: 600; color: var(--text-main); font-size: 20px; text-align: center; }
+    h2 { margin: 0; font-weight: 600; color: var(--text-main); font-size: 20px; text-align: center; }
 
-#statusDot { 
-  position: absolute;
-  left: 0;
-  width: 12px; height: 12px; 
-  border-radius: 50%; 
-  background: #94a3b8; 
-  transition: 0.3s;
-}
-#statusDot.online { background: #10b981; box-shadow: 0 0 10px #10b981; }
-#statusDot.offline { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+    #statusDot { 
+      position: absolute; left: 0; width: 12px; height: 12px; 
+      border-radius: 50%; background: #94a3b8; transition: 0.3s;
+    }
+    #statusDot.online { background: #10b981; box-shadow: 0 0 10px #10b981; }
+    #statusDot.offline { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
 
-/* Right side action group */
-.header-actions {
-  position: absolute;
-  right: 0;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
+    .header-actions { position: absolute; right: 0; display: flex; gap: 8px; align-items: center; }
 
-#themeToggle, #fabToggle { 
-  width: 32px; height: 32px; 
-  border-radius: 50%; 
-  border: 1px solid var(--border-color); 
-  background: var(--bg-input); 
-  color: var(--text-main); 
-  cursor: pointer; 
-  display: flex; align-items: center; justify-content: center; 
-  font-size: 14px; padding: 0; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
-  flex-shrink: 0;
-}
+    #themeToggle, #fabToggle { 
+      width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-color); 
+      background: var(--bg-input); color: var(--text-main); cursor: pointer; 
+      display: flex; align-items: center; justify-content: center; 
+      font-size: 14px; padding: 0; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0;
+    }
 
-.theme-rotate { transform: rotate(360deg); }
+    .nav-fab-container { position: relative; }
+    .nav-options { 
+      position: absolute; right: 0; top: 40px; display: flex; flex-direction: column; 
+      align-items: flex-end; gap: 8px; opacity: 0; transform: translateY(-10px); 
+      pointer-events: none; transition: 0.2s ease-out; z-index: 10001; 
+    }
+    .nav-fab-container.active .nav-options { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .nav-item { 
+      background: var(--bg-card); color: var(--text-main); padding: 8px 14px; 
+      border-radius: 10px; font-size: 12px; font-weight: 600; text-decoration: none; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid var(--border-color); 
+      white-space: nowrap; width: fit-content; transition: background 0.5s ease;
+    }
+    .nav-item:hover { background: var(--primary); color: white; border-color: var(--primary); }
 
-.nav-fab-container { position: relative; }
-.nav-options { 
-  position: absolute; right: 0; top: 40px; 
-  display: flex; flex-direction: column; align-items: flex-end;
-  gap: 8px; opacity: 0; transform: translateY(-10px); 
-  pointer-events: none; transition: 0.2s ease-out; z-index: 10001; 
-}
-.nav-fab-container.active .nav-options { opacity: 1; transform: translateY(0); pointer-events: auto; }
-.nav-item { 
-  background: var(--bg-card); color: var(--text-main); padding: 8px 14px; 
-  border-radius: 10px; font-size: 12px; font-weight: 600; text-decoration: none; 
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid var(--border-color); 
-  white-space: nowrap; width: fit-content; transition: background 0.5s ease;
-}
-.nav-item:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .batch-control { display: flex; align-items: center; justify-content: space-between; background: rgba( 99,102,241,0.1); padding: 8px 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #22c55e; height:25px; }
+    .switch { position: relative; display: inline-block; width: 40px; height: 22px; margin-top:0px}
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 22px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #22c55e; }
+    input:checked + .slider:before { transform: translateX(18px); }
 
-.batch-control { display: flex; align-items: center; justify-content: space-between; background: rgba( 59,130,246,0.1); padding: 8px 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--primary);height:25px; }
-.switch { position: relative; display: inline-block; width: 40px; height: 22px; margin-top:0;}
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 22px; }
-.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-input:checked + .slider { background-color: var(--primary); }
-input:checked + .slider:before { transform: translateX(18px); }
+    h3 { margin: 18px 0 8px; font-size: 14px; color: #22c55e; text-transform: uppercase; letter-spacing: 0.05em; }
+    label { font-size: 13px; font-weight: 600; margin-top: 14px; display: block; color: var(--text-label); }
 
-h3 { margin: 18px 0 8px; font-size: 14px; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; }
-label { font-size: 13px; font-weight: 600; margin-top: 14px; display: block; color: var(--text-label); }
+    input, select, button {
+      width: 100%; height: 44px; margin-top: 6px; padding: 0 14px;
+      border-radius: 10px; border: 1px solid var(--border-color); font-size: 14px; box-sizing: border-box;
+      background: var(--bg-input); color: var(--text-main); transition: all 0.3s ease;
+    }
 
-input, select, button {
-  width: 100%; height: 44px; margin-top: 6px; padding: 0 14px;
-  border-radius: 10px; border: 1px solid var(--border-color); font-size: 14px; box-sizing: border-box;
-  background: var(--bg-input); color: var(--text-main); transition: all 0.3s ease;
-}
+    input:focus, select:focus { 
+      outline: none; 
+      border-color: #22c55e; 
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); 
+    }
 
-input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
 
-.was-validated input:invalid, .was-validated select:invalid,
-input.manual-invalid { border-color: var(--danger); background-color: rgba(239, 68, 68, 0.05); }
-.err-msg { color: var(--danger); font-size: 11px; margin-top: 4px; display: none; font-weight: 500; }
-.was-validated :invalid ~ .err-msg, .manual-invalid ~ .err-msg { display: block; }
+    #submitBtn, .btn-confirm, #btnSyncAll, #btnViewQueue, #btnRepeat, .btn-cancel, #btnStopSync { 
+      height: var(--btn-h); font-weight: 600; border-radius: 10px; font-size: 14px; 
+      cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; padding: 0 10px;
+    }
 
-.btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
+    #submitBtn, .btn-confirm { background: var(--primary); color: #fff; border: none; }
+    #btnRepeat, .btn-cancel { background: var(--bg-input); color: var(--text-main); border: 1.5px solid var(--border-color); }
+    #btnStopSync { border: 1.5px solid #ef4444; background-color: white; color: #ef4444; }
 
-#submitBtn, .btn-confirm, #btnSyncAll, #btnViewQueue, #btnRepeat, .btn-cancel { 
-  height: var(--btn-h); 
-  font-weight: 600; 
-  border-radius: 10px; 
-  font-size: 14px; 
-  cursor: pointer; 
-  transition: 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 10px;
-  margin-top: 0;
-}
+    hr { border: none; border-top: 1px dashed var(--border-color); margin: 20px 0; }
+    .hidden { display: none !important; }
 
-#submitBtn, .btn-confirm { background: var(--primary); color: #fff; border: none; }
-#submitBtn:hover:not(:disabled), .btn-confirm:hover { background: var(--primary-hover); }
+    #cashBox { margin-top: 14px; background: var(--bg-body); padding: 14px; border-radius: 14px; border: 1px solid var(--border-color); }
+    #denominations, .confirm-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .denom-card, .matrix-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 5px; text-align: center; }
+    .denom-label, .matrix-label { font-weight: 600; margin-bottom: 5px; font-size: 11px; color: var(--text-label); }
+    .denom-card input { height: 32px; text-align: center; margin-top: 0; border-radius: 6px; width: 80%; }
 
-#btnRepeat, .btn-cancel { background: var(--bg-input); color: var(--text-main); border: 1.5px solid var(--border-color); }
+    .sync-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border-color); }
+    #btnSyncAll { background: var(--secondary); color: white; border: none; gap: 6px; }
+    #btnViewQueue { background: #94a3b8; color: white; border: none; }
 
-hr { border: none; border-top: 1px dashed var(--border-color); margin: 20px 0; }
-.hidden { display: none !important; }
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; }
+    .modal-content { background: var(--bg-card); color: var(--text-main); width: 95%; max-width: 850px; max-height: 85vh; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-color); }
+    
+    .confirm-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+    .confirm-label { font-weight: 600; color: var(--text-label); }
+    .confirm-val { color: var(--text-main); text-align: right; font-weight: 500; }
+    .confirm-section-title { font-size: 12px; font-weight: 700; color: var(--primary); margin: 15px 0 8px 0; text-transform: uppercase; border-bottom: 1px solid var(--primary); width: fit-content; padding-right: 10px; }
 
-#cashBox { margin-top: 14px; background: var(--bg-body); padding: 14px; border-radius: 14px; border: 1px solid var(--border-color); }
-#denominations, .confirm-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.denom-card, .confirm-matrix-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 5px; text-align: center; }
-.denom-label, .matrix-label { font-weight: 600; margin-bottom: 5px; font-size: 11px; color: var(--text-muted); }
-.denom-card input { height: 32px; text-align: center; margin-top: 0; border-radius: 6px; }
+    .table-container { overflow-x: auto; flex-grow: 1; background: var(--bg-card); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 900px; table-layout: fixed; }
+    th { text-align: center; padding: 8px; border-bottom: 2px solid var(--border-color); color: var(--text-label); }
+    td { padding: 10px 5px; border-bottom: 1px solid var(--border-color); vertical-align: middle; text-align: center; color: var(--text-main); }
 
-.sync-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border-color); }
-#btnSyncAll { background: var(--secondary); color: white; border: none; gap: 6px; }
-#btnViewQueue { background: #94a3b8; color: white; border: none; }
+    .action-btn { border: none; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 0 4px; }
+    .btn-del-mini { background: #fee2e2; color: #ef4444; }
+    .btn-edit-mini { background: #e0e7ff; color: #4338ca; }
 
-.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; }
-.modal-content { background: var(--bg-card); color: var(--text-main); width: 95%; max-width: 850px; max-height: 85vh; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-color); }
-.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 10px 20px; }
-.close-modal { font-size: 24px; cursor: pointer; color: var(--text-label); }
+    .queue-denoms { font-size: 9.5px; color: #2563eb; font-family: monospace; display: block; line-height: 1.2; margin-top: 4px; opacity: 0.8; word-wrap: break-word; }
 
-.confirm-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 13px; }
-.confirm-label { font-weight: 600; color: var(--text-label); }
-.confirm-val { color: var(--text-main); text-align: right; font-weight: 500; }
-.confirm-section-title { font-size: 12px; font-weight: 700; color: var(--primary); margin: 15px 0 5px 0; text-transform: uppercase; border-bottom: 1px solid var(--primary); width: fit-content; padding-right: 10px; }
-
-.table-container { overflow-x: auto; flex-grow: 1; background: var(--bg-card); }
-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 900px; table-layout: fixed; }
-th { text-align: center; padding: 5px; border-bottom: 2px solid var(--border-color); color: var(--text-label); transition: color 0.5s ease; }
-td { padding: 5px; border-bottom: 1px solid var(--border-color); vertical-align: middle; text-align: center; color: var(--text-main); }
-
-table td:nth-child(1), table th:nth-child(1) {
-  text-align: center;width:40px; /* Options: left, center, right */
-  padding-left: 0px;/* Optional: adds a small gap from the border */
-}
-
-table td:nth-child(2), table th:nth-child(2) {
-  text-align: center;/* Options: left, center, right */width:150px;
-  padding-left: 0px;/* Optional: adds a small gap from the border */
-}
-
-table td:nth-child(3), table th:nth-child(3) {
-  text-align: center;width:170px; /* Options: left, center, right */
-  padding-left: 0px;/* Optional: adds a small gap from the border */
-}
-
-table td:nth-child(4), table th:nth-child(4) {
-  text-align: center;width:170px; /* Options: left, center, right */
-  padding-left: 0px;/* Optional: adds a small gap from the border */
-}
-
-/* Target the 5th column (Amount) */
-table td:nth-child(5), table th:nth-child(5) {
-  text-align: center;padding-left:0px;width: 50px; /* Change to left, center, or right */
-  padding-right: 0px; /* Adds space from the edge if right-aligned */
-   /* You can adjust this width as needed */
-}
-
-table td:nth-child(6), table th:nth-child(6) {
-  text-align: center;width:50px; /* Options: left, center, right */
-  padding-left: 0px;/* Optional: adds a small gap from the border */
-}
-
-.action-btn { border: none; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 0 4px; }
-.btn-del-mini { background: #fee2e2; color: #ef4444; }
-.btn-edit-mini { background: #e0e7ff; color: #4338ca; }
-body.dark .btn-del-mini { background: #450a0a; color: #f87171; }
-body.dark .btn-edit-mini { background: #1e1b4b; color: #818cf8; }
-
-.queue-denoms { font-size: 10px; color: #2563eb; font-family: monospace; display: block; line-height: 1.2; width:170px;}
-
-@keyframes blink { 50% { opacity: 0.5; } }
-.saving-text { animation: blink 1s infinite; }
-</style>
+    .modal-header { 
+      display: flex; justify-content: space-between; align-items: center; 
+      border-bottom: 1px solid var(--border-color); padding: 15px 20px; background: var(--bg-card);
+    }
+    .close-modal { font-size: 28px; font-weight: bold; cursor: pointer; color: var(--text-label); line-height: 1; padding: 5px; }
+  </style>
 </head>
 
 <body>
@@ -258,11 +190,9 @@ body.dark .btn-edit-mini { background: #1e1b4b; color: #818cf8; }
 
   <label>Date</label>
   <input type="date" id="date" required>
-  <div class="err-msg">Select a date</div>
 
   <label>Narration</label>
   <input type="text" id="narration" required placeholder="What is this transfer for?">
-  <div class="err-msg">Narration is required</div>
 
   <hr>
   <h3>From</h3>
@@ -271,14 +201,11 @@ body.dark .btn-edit-mini { background: #1e1b4b; color: #818cf8; }
     <option value="">Select</option>
     <option>Cash</option><option>Upi</option><option>Debit</option><option>Net</option><option>Credit</option><option>Rewards</option>
   </select>
-  <div class="err-msg">Select source type</div>
 
   <div id="fromAccBlock" class="hidden">
     <label>Source Account</label>
     <select id="fromAccount"></select>
-    <div class="err-msg">Select account</div>
     <input type="text" id="fromAccountOther" class="hidden" placeholder="Enter Platform Name" style="margin-top: 8px;">
-    <div class="err-msg">Please enter platform name</div>
   </div>
 
   <hr>
@@ -288,14 +215,11 @@ body.dark .btn-edit-mini { background: #1e1b4b; color: #818cf8; }
     <option value="">Select</option>
     <option>Cash</option><option>Upi</option><option>Debit</option><option>Net</option><option>Credit</option><option>Rewards</option>
   </select>
-  <div class="err-msg">Select destination type</div>
 
   <div id="toAccBlock" class="hidden">
     <label>Destination Account</label>
     <select id="toAccount"></select>
-    <div class="err-msg">Select account</div>
     <input type="text" id="toAccountOther" class="hidden" placeholder="Enter Platform Name" style="margin-top: 8px;">
-    <div class="err-msg">Please enter platform name</div>
   </div>
 
   <div id="cashBox" class="hidden">
@@ -305,7 +229,6 @@ body.dark .btn-edit-mini { background: #1e1b4b; color: #818cf8; }
 
   <label>Total Amount</label>
   <input type="number" id="amount" step="0.01" required placeholder="0.00">
-  <div class="err-msg">Amount must be greater than 0</div>
 
   <div class="btn-group">
     <button type="submit" id="submitBtn">Submit Transfer</button>
@@ -313,10 +236,13 @@ body.dark .btn-edit-mini { background: #1e1b4b; color: #818cf8; }
   </div>
 
   <div id="footerSync" class="sync-wrapper hidden">
-    <button type="button" id="btnSyncAll">
-      <span id="syncText">☁️ Sync All</span>
-      <small id="syncCount">(0)</small>
-    </button>
+    <div style="display: flex; gap: 8px;">
+        <button type="button" id="btnSyncAll">
+          <span id="syncText">☁️ Sync All</span>
+          <small id="syncCount">(0)</small>
+        </button>
+        <button type="button" id="btnStopSync" class="hidden">🛑 Stop Syncing</button>
+    </div>
     <button type="button" id="btnViewQueue">📋 View Pending</button>
   </div>
 </form>
@@ -335,8 +261,8 @@ body.dark .btn-edit-mini { background: #1e1b4b; color: #818cf8; }
 <div id="queueModal" class="modal hidden">
   <div class="modal-content">
     <div class="modal-header">
-      <h4>Pending Sync Queue</h4>
-      <span class="close-modal">&times;</span>
+      <h4 style="margin:0; font-size: 16px;">Pending Sync Queue</h4>
+      <span class="close-modal" onclick="getEl('queueModal').classList.add('hidden')">&times;</span>
     </div>
     <div class="table-container">
       <table>
@@ -344,9 +270,9 @@ body.dark .btn-edit-mini { background: #1e1b4b; color: #818cf8; }
           <tr>
             <th style="width:90px">Date</th>
             <th>Narration</th>
-            <th style="width:130px">From</th>
-            <th style="width:130px">To</th>
-            <th style="width:110px">Amount</th>
+            <th style="width:140px">From</th>
+            <th style="width:140px">To</th>
+            <th style="width:100px">Amount</th>
             <th style="width:100px">Action</th>
           </tr>
         </thead>
@@ -358,73 +284,48 @@ body.dark .btn-edit-mini { background: #1e1b4b; color: #818cf8; }
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTuJ83bl1akd3bP1Tujt-QxldHEwHvQZmPYefA5E6Csshxqcd3srdOLO6n-LPZbDKkoA/exec";
-let isSubmitting = false;
-let currentPayload = null;
-let db;
-
-const selfForm = document.getElementById("form"), date = document.getElementById("date"), narration = document.getElementById("narration"), fromType = document.getElementById("fromType"), fromAccount = document.getElementById("fromAccount"), fromAccountOther = document.getElementById("fromAccountOther"), toType = document.getElementById("toType"), toAccount = document.getElementById("toAccount"), toAccountOther = document.getElementById("toAccountOther"), amount = document.getElementById("amount"), cashBox = document.getElementById("cashBox"), denDiv = document.getElementById("denominations"), submitBtn = document.getElementById("submitBtn"), batchToggle = document.getElementById("batchToggle"), btnRepeat = document.getElementById("btnRepeat");
-const syncCountLabel = document.getElementById("syncCount"), btnSyncAll = document.getElementById("btnSyncAll"), footerSync = document.getElementById("footerSync"), btnViewQueue = document.getElementById("btnViewQueue"), queueModal = document.getElementById("queueModal"), queueTableBody = document.getElementById("queueTableBody"), closeModal = document.querySelector(".close-modal");
-const themeToggle = document.getElementById("themeToggle"), statusDot = document.getElementById("statusDot");
-const confirmModal = document.getElementById("confirmModal"), confirmDetails = document.getElementById("confirmDetails");
-const navFab = document.getElementById('navFab'), fabBtn = document.getElementById('fabToggle');
+let isSubmitting = false, syncAborted = false, currentPayload = null, db;
 
 const bankAccounts=["FI","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
 const creditCards=["Axis Flipkart","Axis MyZone","Axis Neo","HDFC PhonePe","HDFC Tata Neu","HDFC Millennia","HSBC","IDFC First Millenia","ICICI Amazon","ICICI Coral","ICICI Expressions","Indusind Plat Aura EDGE","Indusind Legend","Yes Finbooster","Kotak League","Kotak Image","SBI BPCL","Standard Chartered"];
-const rewardPlatforms=["Amazon", "Flipkart", "Supermoney", "Payzapp", "MobiKwik", "Tata Neu", "Others"];
+const rewardPlatforms=["Amazon", "Flipkart", "Supermoney", "Payzapp", "MobiKwik", "Tata Neu"];
 const denoms=[500,200,100,50,20,10,5,2,1];
 
-// Navigation Toggle
-fabBtn.onclick = (e) => {
-  e.stopPropagation();
-  navFab.classList.toggle('active');
+const getEl = id => document.getElementById(id);
+const formatDisplayDate = dStr => {
+  const d = new Date(dStr);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
 };
+
+const selfForm = getEl("form"), date = getEl("date"), narration = getEl("narration"), fromType = getEl("fromType"), fromAccount = getEl("fromAccount"), fromAccountOther = getEl("fromAccountOther"), toType = getEl("toType"), toAccount = getEl("toAccount"), toAccountOther = getEl("toAccountOther"), amount = getEl("amount"), cashBox = getEl("cashBox"), denDiv = getEl("denominations"), submitBtn = getEl("submitBtn"), batchToggle = getEl("batchToggle");
+const syncCountLabel = getEl("syncCount"), btnSyncAll = getEl("btnSyncAll"), btnStopSync = getEl("btnStopSync"), footerSync = getEl("footerSync"), btnViewQueue = getEl("btnViewQueue"), queueModal = getEl("queueModal"), queueTableBody = getEl("queueTableBody");
+const themeToggle = getEl("themeToggle"), statusDot = getEl("statusDot"), confirmModal = getEl("confirmModal"), confirmDetails = getEl("confirmDetails"), navFab = getEl('navFab'), fabBtn = getEl('fabToggle');
+
+date.value = new Date().toISOString().split("T")[0];
+denoms.forEach(d => { denDiv.innerHTML += `<div class="denom-card"><div class="denom-label">₹${d}</div><input type="number" value="0" data-d="${d}" placeholder="0"></div>`; });
+
+fabBtn.onclick = e => { e.stopPropagation(); navFab.classList.toggle('active'); };
 document.addEventListener('click', () => navFab.classList.remove('active'));
 
-// Theme Toggle with Animation
 themeToggle.onclick = () => {
-  themeToggle.classList.add('theme-rotate');
   const isDark = document.body.classList.toggle("dark");
-  setTimeout(() => {
-    themeToggle.textContent = isDark ? "☀️" : "🌙";
-  }, 150);
-  setTimeout(() => {
-    themeToggle.classList.remove('theme-rotate');
-  }, 500);
+  themeToggle.textContent = isDark ? "☀️" : "🌙";
   localStorage.setItem("selfTransferTheme", isDark ? "dark" : "light");
 };
 
-// Persistent Batch Toggle
-batchToggle.onchange = () => {
-    localStorage.setItem("batchModeActive", batchToggle.checked);
-};
-if(localStorage.getItem("batchModeActive") === "true") {
-    batchToggle.checked = true;
+function updateStatusDot() { 
+  statusDot.className = navigator.onLine ? 'online' : 'offline'; 
 }
+window.addEventListener('online', updateStatusDot); 
+window.addEventListener('offline', updateStatusDot);
+updateStatusDot();
 
 (function initDB(){
   const req = indexedDB.open("SelfTransferDB", 1);
   req.onupgradeneeded = e => e.target.result.createObjectStore("transferQueue", { keyPath: "id", autoIncrement: true });
-  req.onsuccess = e => { 
-    db = e.target.result; 
-    updatePendingCount(); 
-  };
+  req.onsuccess = e => { db = e.target.result; updatePendingCount(); };
 })();
-
-function formatDisplayDate(dateStr) {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
-}
-
-
-function updateStatusDot() {
-  const isOnline = navigator.onLine;
-  statusDot.className = isOnline ? 'online' : 'offline';
-}
-window.addEventListener('online', updateStatusDot);
-window.addEventListener('offline', updateStatusDot);
-updateStatusDot();
 
 async function updatePendingCount(){
   if(!db) return;
@@ -433,18 +334,9 @@ async function updatePendingCount(){
     const items = tx.result;
     footerSync.classList.toggle("hidden", !items.length);
     syncCountLabel.textContent = `(${items.length})`;
+    renderQueueTable(items);
   };
 }
-
-if(localStorage.getItem("selfTransferTheme") === "dark") {
-  document.body.classList.add("dark");
-  themeToggle.textContent = "☀️";
-}
-
-date.value = new Date().toISOString().split("T")[0];
-denoms.forEach(d=>{
-  denDiv.innerHTML+=`<div class="denom-card"><div class="denom-label">₹${d}</div><input type="number" value="0" data-d="${d}" placeholder="0"></div>`;
-});
 
 function buildAccounts(type, select, block, otherInput){
   select.innerHTML = "<option value=''>Select Account</option>";
@@ -452,8 +344,6 @@ function buildAccounts(type, select, block, otherInput){
   block.classList.toggle("hidden", isCash);
   select.required = !isCash;
   otherInput.classList.add("hidden");
-  otherInput.required = false;
-
   if(!isCash) {
     let list = (type === "Credit") ? creditCards : (type === "Rewards" ? rewardPlatforms : bankAccounts);
     list.forEach(v => select.add(new Option(v, v)));
@@ -467,57 +357,38 @@ function calcCash(){
   if(fromType.value === "Cash" || toType.value === "Cash") amount.value = total;
 }
 
-fromType.onchange = () => { buildAccounts(fromType.value, fromAccount, document.getElementById("fromAccBlock"), fromAccountOther); cashBox.classList.toggle("hidden", fromType.value!=="Cash" && toType.value!=="Cash"); amount.readOnly = (fromType.value==="Cash"||toType.value==="Cash"); };
-toType.onchange = () => { buildAccounts(toType.value, toAccount, document.getElementById("toAccBlock"), toAccountOther); cashBox.classList.toggle("hidden", fromType.value!=="Cash" && toType.value!=="Cash"); amount.readOnly = (fromType.value==="Cash"||toType.value==="Cash"); };
-
-fromAccount.onchange = () => { const isOther = fromAccount.value === "Others"; fromAccountOther.classList.toggle('hidden', !isOther); fromAccountOther.required = isOther; };
-toAccount.onchange = () => { const isOther = toAccount.value === "Others"; toAccountOther.classList.toggle('hidden', !isOther); toAccountOther.required = isOther; };
-
+fromType.onchange = () => { buildAccounts(fromType.value, fromAccount, getEl("fromAccBlock"), fromAccountOther); cashBox.classList.toggle("hidden", fromType.value!=="Cash" && toType.value!=="Cash"); amount.readOnly = (fromType.value==="Cash"||toType.value==="Cash"); };
+toType.onchange = () => { buildAccounts(toType.value, toAccount, getEl("toAccBlock"), toAccountOther); cashBox.classList.toggle("hidden", fromType.value!=="Cash" && toType.value!=="Cash"); amount.readOnly = (fromType.value==="Cash"||toType.value==="Cash"); };
+fromAccount.onchange = () => { fromAccountOther.classList.toggle('hidden', fromAccount.value !== "Others"); };
+toAccount.onchange = () => { toAccountOther.classList.toggle('hidden', toAccount.value !== "Others"); };
 denDiv.addEventListener("input", calcCash);
 
 selfForm.onsubmit = async e => {
   e.preventDefault();
   selfForm.classList.add("was-validated");
   const val = parseFloat(amount.value);
-  const isAmtValid = !isNaN(val) && val > 0;
-  amount.classList.toggle("manual-invalid", !isAmtValid);
-
-  if(!selfForm.checkValidity() || !isAmtValid) return;
+  if(!selfForm.checkValidity() || isNaN(val) || val <= 0) return;
   
   const fAcc = fromType.value === "Cash" ? "Cash" : (fromAccount.value === "Others" ? fromAccountOther.value : fromAccount.value);
   const tAcc = toType.value === "Cash" ? "Cash" : (toAccount.value === "Others" ? toAccountOther.value : toAccount.value);
 
-  currentPayload = {
-    date: date.value, narration: narration.value,
-    fromType: fromType.value, fromAccount: fAcc,
-    toType: toType.value, toAccount: tAcc,
-    amount: val,
-    denoms: {}
-  };
+  currentPayload = { date: date.value, narration: narration.value, fromType: fromType.value, fromAccount: fAcc, toType: toType.value, toAccount: tAcc, amount: val, denoms: {} };
   document.querySelectorAll("[data-d]").forEach(i => currentPayload.denoms["d" + i.dataset.d] = i.value || 0);
 
-  localStorage.setItem("lastTransfer", JSON.stringify(currentPayload));
-
-  if (!navigator.onLine || batchToggle.checked) {
-    saveToDB();
-    alert(batchToggle.checked ? "Batch Mode: Saved to queue." : "Offline: Saved to queue."); 
-    return;
-  }
+  if (!navigator.onLine || batchToggle.checked) { saveToDB(); return; }
 
   let detailsHtml = `
     <div class="confirm-item"><span class="confirm-label">Date</span><span class="confirm-val">${formatDisplayDate(currentPayload.date)}</span></div>
     <div class="confirm-item"><span class="confirm-label">Narration</span><span class="confirm-val">${currentPayload.narration}</span></div>
-    <div class="confirm-item"><span class="confirm-label">From</span><span class="confirm-val">${currentPayload.fromType} (${currentPayload.fromAccount})</span></div>
-    <div class="confirm-item"><span class="confirm-label">To</span><span class="confirm-val">${currentPayload.toType} (${currentPayload.toAccount})</span></div>
+    <div class="confirm-item"><span class="confirm-label">From</span><span class="confirm-val">${currentPayload.fromType === 'Cash' ? 'Cash' : '<strong>'+currentPayload.fromAccount+'</strong> ('+currentPayload.fromType+')'}</span></div>
+    <div class="confirm-item"><span class="confirm-label">To</span><span class="confirm-val">${currentPayload.toType === 'Cash' ? 'Cash' : '<strong>'+currentPayload.toAccount+'</strong> ('+currentPayload.toType+')'}</span></div>
     <div class="confirm-item" style="border:none"><span class="confirm-label" style="color:var(--primary)">Total Amount</span><span class="confirm-val" style="color:var(--primary); font-weight:bold">₹${currentPayload.amount.toFixed(2)}</span></div>
   `;
 
-  if (fromType.value === "Cash" || toType.value === "Cash") {
-    detailsHtml += `<div class="confirm-section-title">Cash Matrix</div><div class="confirm-matrix">`;
-    denoms.forEach(d => {
-      detailsHtml += `<div class="confirm-matrix-card"><div class="matrix-label">₹${d}</div><div style="font-weight:700; font-size:12px;">${currentPayload.denoms["d"+d]}</div></div>`;
-    });
-    detailsHtml += `</div>`;
+  if(fromType.value === 'Cash' || toType.value === 'Cash') {
+      detailsHtml += `<div class="confirm-section-title">Cash Matrix</div><div class="confirm-matrix">`;
+      denoms.forEach(d => { detailsHtml += `<div class="matrix-card"><div class="matrix-label">₹${d}</div><strong>${currentPayload.denoms["d"+d]}</strong></div>`; });
+      detailsHtml += `</div>`;
   }
   confirmDetails.innerHTML = detailsHtml;
   confirmModal.classList.remove("hidden");
@@ -525,45 +396,49 @@ selfForm.onsubmit = async e => {
 
 async function executeSubmit() {
   if(!currentPayload || isSubmitting) return; 
-  
   confirmModal.classList.add("hidden");
-  isSubmitting = true;
-  
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Processing...";
-  submitBtn.style.opacity = "0.7";
+  isSubmitting = true; submitBtn.disabled = true; submitBtn.textContent = "Processing...";
+  try { await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(currentPayload) }); alert("Saved!"); resetForm(); } 
+  catch (err) { saveToDB(); alert("Saved to queue."); } 
+  finally { isSubmitting = false; submitBtn.disabled = false; submitBtn.textContent = "Submit Transfer"; updatePendingCount(); }
+}
 
-  try {
-    await fetch(SCRIPT_URL, { 
-      method: "POST", 
-      mode: "no-cors", 
-      body: JSON.stringify(currentPayload) 
-    });
-    
-    alert("Transfer Saved Successfully!");
-    resetForm();
-  } catch (err) {
-    saveToDB(); 
-    alert("Network issue. Saved to local queue."); 
-  } finally {
-    isSubmitting = false;
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Submit Transfer";
-    submitBtn.style.opacity = "1";
-    updatePendingCount();
+function saveToDB() { if(db) { db.transaction("transferQueue", "readwrite").objectStore("transferQueue").add(currentPayload); resetForm(); updatePendingCount(); } }
+
+async function manualSync() {
+  if (!navigator.onLine) return alert("No Internet");
+  if (!confirm("Sync all?")) return;
+  syncAborted = false; btnSyncAll.classList.add("hidden"); btnStopSync.classList.remove("hidden");
+  const items = await new Promise(res => db.transaction("transferQueue").objectStore("transferQueue").getAll().onsuccess = e => res(e.target.result));
+  for (let i = 0; i < items.length; i++) {
+    if (syncAborted) break;
+    btnStopSync.textContent = `🛑 Stop Syncing (${i+1}/${items.length})`;
+    try {
+      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(items[i]) });
+      await new Promise(res => db.transaction("transferQueue", "readwrite").objectStore("transferQueue").delete(items[i].id).onsuccess = res);
+      updatePendingCount();
+    } catch (e) { break; }
   }
+  btnStopSync.classList.add("hidden"); btnSyncAll.classList.remove("hidden"); btnStopSync.textContent = "🛑 Stop Syncing";
 }
 
-function saveToDB() {
-    if(!db) return;
-    db.transaction("transferQueue", "readwrite").objectStore("transferQueue").add(currentPayload);
-    resetForm(); updatePendingCount();
+function renderQueueTable(items) {
+  queueTableBody.innerHTML = items.length ? "" : "<tr><td colspan='6'>Queue is empty</td></tr>";
+  items.forEach(item => {
+    const denStr = denoms.map(v => `${v}x${item.denoms['d'+v]||0}`).join(', ');
+    const fromLabel = item.fromType === 'Cash' ? `<strong>Cash</strong><br><span class="queue-denoms">${denStr}</span>` : `<strong>${item.fromAccount}</strong><br>(${item.fromType})`;
+    const toLabel = item.toType === 'Cash' ? `<strong>Cash</strong><br><span class="queue-denoms">${denStr}</span>` : `<strong>${item.toAccount}</strong><br>(${item.toType})`;
+    
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${formatDisplayDate(item.date)}</td><td>${item.narration}</td><td>${fromLabel}</td><td>${toLabel}</td><td>₹${item.amount.toFixed(2)}</td><td><button class="action-btn btn-edit-mini" onclick="editItem(${item.id})">✏️</button><button class="action-btn btn-del-mini" onclick="deleteItem(${item.id})">🗑️</button></td>`;
+    queueTableBody.appendChild(tr);
+  });
 }
 
-btnRepeat.onclick = () => {
-    const last = JSON.parse(localStorage.getItem("lastTransfer"));
-    if(!last) return alert("No recent transfer.");
-    loadToForm(last);
+window.deleteItem = id => { if(confirm("Delete?")) db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = updatePendingCount; };
+window.editItem = id => {
+  const tx = db.transaction("transferQueue", "readonly").objectStore("transferQueue").get(id);
+  tx.onsuccess = () => { loadToForm(tx.result); db.transaction("transferQueue", "readwrite").objectStore("transferQueue").delete(id).onsuccess = () => { queueModal.classList.add("hidden"); updatePendingCount(); }; };
 };
 
 function loadToForm(item){
@@ -578,105 +453,23 @@ function loadToForm(item){
         if(bankAccounts.concat(creditCards, rewardPlatforms).includes(item.toAccount)) toAccount.value = item.toAccount;
         else { toAccount.value = "Others"; toAccount.dispatchEvent(new Event('change')); toAccountOther.value = item.toAccount; }
     }
-    if(item.fromType === "Cash" || item.toType === "Cash"){
-        denoms.forEach(d => { document.querySelector(`[data-d="${d}"]`).value = item.denoms["d"+d] || 0; });
-        calcCash();
-    } else amount.value = item.amount;
+    if(item.fromType === "Cash" || item.toType === "Cash"){ denoms.forEach(d => { document.querySelector(`[data-d="${d}"]`).value = item.denoms["d"+d] || 0; }); calcCash(); } else amount.value = item.amount;
 }
 
 function resetForm() {
-  const bState = batchToggle.checked;
-  selfForm.reset(); selfForm.classList.remove("was-validated"); amount.classList.remove("manual-invalid");
-  document.getElementById("fromAccBlock").classList.add("hidden"); document.getElementById("toAccBlock").classList.add("hidden");
-  fromAccountOther.classList.add("hidden"); toAccountOther.classList.add("hidden");
+  const bState = batchToggle.checked; selfForm.reset(); selfForm.classList.remove("was-validated");
+  getEl("fromAccBlock").classList.add("hidden"); getEl("toAccBlock").classList.add("hidden");
   cashBox.classList.add("hidden"); date.value = new Date().toISOString().split("T")[0];
-  document.querySelectorAll("[data-d]").forEach(i => i.value = 0);
-  batchToggle.checked = bState;
+  document.querySelectorAll("[data-d]").forEach(i => i.value = 0); batchToggle.checked = bState;
 }
 
-function renderQueueTable() {
-  if(!db) return;
-  queueTableBody.innerHTML = "";
-  const tx = db.transaction("transferQueue", "readonly").objectStore("transferQueue").getAll();
-  tx.onsuccess = (e) => {
-    const items = e.target.result;
-    if(!items.length) queueTableBody.innerHTML = "<tr><td colspan='6'>Queue is empty</td></tr>";
-    items.forEach(item => {
-      const tr = document.createElement("tr");
-      
-      const formatDenoms = (d) => denoms.map(v => `${v}x${d['d'+v]||0}`).join(', ');
-      
-      const fromDisplay = item.fromType === "Cash" ? 
-        `<strong>Cash</strong><br><span class="queue-denoms">${formatDenoms(item.denoms)}</span>` : 
-        `${item.fromType}<br><small>(${item.fromAccount})</small>`;
-        
-      const toDisplay = item.toType === "Cash" ? 
-        `<strong>Cash</strong><br><span class="queue-denoms">${formatDenoms(item.denoms)}</span>` : 
-        `${item.toType}<br><small>(${item.toAccount})</small>`;
-
-      tr.innerHTML = `
-        <td>${formatDisplayDate(item.date)}</td>
-        <td>${item.narration}</td>
-        <td>${fromDisplay}</td>
-        <td>${toDisplay}</td>
-        <td>₹${item.amount.toFixed(2)}</td>
-        <td>
-          <button class="action-btn btn-edit-mini" onclick="editItem(${item.id})">✏️</button>
-          <button class="action-btn btn-del-mini" onclick="deleteItem(${item.id})">🗑️</button>
-        </td>`;
-      queueTableBody.appendChild(tr);
-    });
-  };
+getEl("btnRepeat").onclick = () => { const last = JSON.parse(localStorage.getItem("lastTransfer")); if(last) loadToForm(last); };
+getEl("btnConfirmFinal").onclick = executeSubmit; getEl("btnConfirmCancel").onclick = () => confirmModal.classList.add("hidden");
+btnViewQueue.onclick = () => queueModal.classList.remove("hidden"); btnSyncAll.onclick = manualSync; btnStopSync.onclick = () => { syncAborted = true; };
+if(localStorage.getItem("selfTransferTheme") === "dark") { 
+  document.body.classList.add("dark"); 
+  themeToggle.textContent = "☀️"; 
 }
-
-window.deleteItem = id => {
-  if(confirm("Delete?")) db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = () => { renderQueueTable(); updatePendingCount(); };
-};
-
-window.editItem = id => {
-    const tx = db.transaction("transferQueue", "readonly").objectStore("transferQueue").get(id);
-    tx.onsuccess = () => {
-        loadToForm(tx.result);
-        db.transaction("transferQueue", "readwrite").objectStore("transferQueue").delete(id).onsuccess = () => { queueModal.classList.add("hidden"); updatePendingCount(); };
-    };
-};
-
-async function manualSync() {
-  if (!navigator.onLine) return alert("Internet required to sync.");
-  if (!confirm("Start syncing all pending items?")) return;
-
-  const syncBtn = document.getElementById("btnSyncAll");
-  const syncText = document.getElementById("syncText");
-  syncBtn.disabled = true;
-  syncBtn.style.opacity = "0.7";
-
-  const tx = db.transaction("transferQueue", "readonly");
-  const store = tx.objectStore(STORE_NAME);
-  const items = await new Promise(res => { store.getAll().onsuccess = e => res(e.target.result); });
-
-  for (let i = 0; i < items.length; i++) {
-    syncText.innerHTML = `<span class="saving-text">Syncing ${i+1}/${items.length}</span>`;
-    try {
-      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(items[i]) });
-      await new Promise(res => {
-        db.transaction("transferQueue", "readwrite").objectStore("transferQueue").delete(items[i].id).onsuccess = res;
-      });
-      updatePendingCount();
-    } catch (e) {
-      alert("Sync interrupted.");
-      break;
-    }
-  }
-  syncText.textContent = "☁️ Sync All";
-  syncBtn.disabled = false;
-  syncBtn.style.opacity = "1";
-}
-
-document.getElementById("btnConfirmFinal").onclick = executeSubmit;
-document.getElementById("btnConfirmCancel").onclick = () => confirmModal.classList.add("hidden");
-btnViewQueue.onclick = () => { renderQueueTable(); queueModal.classList.remove("hidden"); };
-btnSyncAll.onclick = manualSync;
-closeModal.onclick = () => queueModal.classList.add("hidden");
 </script>
 </body>
 </html>
