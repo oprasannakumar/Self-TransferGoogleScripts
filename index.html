@@ -36,7 +36,7 @@ body {
   background: var(--bg-body);
   color: var(--text-main);
   padding: 20px; margin: 0; min-height: 100vh;
-  transition: background 0.3s;
+  transition: background 0.5s ease, color 0.5s ease;
 }
 
 form, .confirm-card {
@@ -44,30 +44,44 @@ form, .confirm-card {
   border-radius: 16px; box-shadow: 0 18px 40px rgba(0,0,0,.08);
   border: 1px solid var(--border-color);
   position: relative;
+  transition: background 0.5s ease, border-color 0.5s ease;
 }
 
 .confirm-card { max-width: 550px; width: 95%; }
 
+/* Perfectly centered header logic */
 .header-row-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center; /* Center the title */
   margin-bottom: 20px;
+  position: relative; /* Container for absolute side buttons */
+  min-height: 32px;
 }
 
-h2 { margin: 0; font-weight: 600; color: var(--text-main); font-size: 20px; flex-grow: 1; text-align: center; }
+h2 { margin: 0; font-weight: 600; color: var(--text-main); font-size: 20px; text-align: center; }
 
 #statusDot { 
+  position: absolute;
+  left: 0;
   width: 12px; height: 12px; 
   border-radius: 50%; 
   background: #94a3b8; 
-  flex-shrink: 0;
   transition: 0.3s;
 }
 #statusDot.online { background: #10b981; box-shadow: 0 0 10px #10b981; }
 #statusDot.offline { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
 
-#themeToggle { 
+/* Right side action group */
+.header-actions {
+  position: absolute;
+  right: 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#themeToggle, #fabToggle { 
   width: 32px; height: 32px; 
   border-radius: 50%; 
   border: 1px solid var(--border-color); 
@@ -75,11 +89,29 @@ h2 { margin: 0; font-weight: 600; color: var(--text-main); font-size: 20px; flex
   color: var(--text-main); 
   cursor: pointer; 
   display: flex; align-items: center; justify-content: center; 
-  font-size: 14px; padding: 0; transition: 0.2s; 
+  font-size: 14px; padding: 0; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
   flex-shrink: 0;
 }
 
-.batch-control { display: flex; align-items: center; justify-content: space-between; background: rgba(37, 99, 235, 0.1); padding: 8px 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--primary); }
+.theme-rotate { transform: rotate(360deg); }
+
+.nav-fab-container { position: relative; }
+.nav-options { 
+  position: absolute; right: 0; top: 40px; 
+  display: flex; flex-direction: column; align-items: flex-end;
+  gap: 8px; opacity: 0; transform: translateY(-10px); 
+  pointer-events: none; transition: 0.2s ease-out; z-index: 10001; 
+}
+.nav-fab-container.active .nav-options { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.nav-item { 
+  background: var(--bg-card); color: var(--text-main); padding: 8px 14px; 
+  border-radius: 10px; font-size: 12px; font-weight: 600; text-decoration: none; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid var(--border-color); 
+  white-space: nowrap; width: fit-content; transition: background 0.5s ease;
+}
+.nav-item:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+.batch-control { display: flex; align-items: center; justify-content: space-between; background: rgba( 59,130,246,0.1); padding: 8px 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--primary);height:25px; }
 .switch { position: relative; display: inline-block; width: 40px; height: 22px; margin-top:0;}
 .switch input { opacity: 0; width: 0; height: 0; }
 .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 22px; }
@@ -93,7 +125,7 @@ label { font-size: 13px; font-weight: 600; margin-top: 14px; display: block; col
 input, select, button {
   width: 100%; height: 44px; margin-top: 6px; padding: 0 14px;
   border-radius: 10px; border: 1px solid var(--border-color); font-size: 14px; box-sizing: border-box;
-  background: var(--bg-input); color: var(--text-main);
+  background: var(--bg-input); color: var(--text-main); transition: all 0.3s ease;
 }
 
 input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
@@ -169,7 +201,17 @@ body.dark .btn-edit-mini { background: #1e1b4b; color: #818cf8; }
   <div class="header-row-top">
     <div id="statusDot" title="Network Status"></div>
     <h2>Self Transfer</h2>
-    <button type="button" id="themeToggle" title="Toggle Dark Mode">🌙</button>
+    
+    <div class="header-actions">
+      <div class="nav-fab-container" id="navFab">
+        <button type="button" id="fabToggle" title="Navigation">🔗</button>
+        <div class="nav-options">
+          <a href="https://oprasannakumar.github.io/MonthlytransactionsGoogleSheets/" class="nav-item">🔄 Monthly Transaction</a>
+          <a href="https://oprasannakumar.github.io/LoanTransferGoogleSheets/" class="nav-item">🏦 Loan Entry</a>
+        </div>
+      </div>
+      <button type="button" id="themeToggle" title="Toggle Dark Mode">🌙</button>
+    </div>
   </div>
 
   <div class="batch-control">
@@ -290,13 +332,34 @@ const selfForm = document.getElementById("form"), date = document.getElementById
 const syncCountLabel = document.getElementById("syncCount"), btnSyncAll = document.getElementById("btnSyncAll"), footerSync = document.getElementById("footerSync"), btnViewQueue = document.getElementById("btnViewQueue"), queueModal = document.getElementById("queueModal"), queueTableBody = document.getElementById("queueTableBody"), closeModal = document.querySelector(".close-modal");
 const themeToggle = document.getElementById("themeToggle"), statusDot = document.getElementById("statusDot");
 const confirmModal = document.getElementById("confirmModal"), confirmDetails = document.getElementById("confirmDetails");
+const navFab = document.getElementById('navFab'), fabBtn = document.getElementById('fabToggle');
 
 const bankAccounts=["FI","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
 const creditCards=["Axis Flipkart","Axis MyZone","Axis Neo","HDFC PhonePe","HDFC Tata Neu","HDFC Millennia","HSBC","IDFC First Millenia","ICICI Amazon","ICICI Coral","ICICI Expressions","Indusind Plat Aura EDGE","Indusind Legend","Yes Finbooster","Kotak League","Kotak Image","SBI BPCL","Standard Chartered"];
 const rewardPlatforms=["Amazon", "Flipkart", "Supermoney", "Payzapp", "MobiKwik", "Tata Neu", "Others"];
 const denoms=[500,200,100,50,20,10,5,2,1];
 
-// --- Persistent Batch Toggle ---
+// Navigation Toggle
+fabBtn.onclick = (e) => {
+  e.stopPropagation();
+  navFab.classList.toggle('active');
+};
+document.addEventListener('click', () => navFab.classList.remove('active'));
+
+// Theme Toggle with Animation
+themeToggle.onclick = () => {
+  themeToggle.classList.add('theme-rotate');
+  const isDark = document.body.classList.toggle("dark");
+  setTimeout(() => {
+    themeToggle.textContent = isDark ? "☀️" : "🌙";
+  }, 150);
+  setTimeout(() => {
+    themeToggle.classList.remove('theme-rotate');
+  }, 500);
+  localStorage.setItem("selfTransferTheme", isDark ? "dark" : "light");
+};
+
+// Persistent Batch Toggle
 batchToggle.onchange = () => {
     localStorage.setItem("batchModeActive", batchToggle.checked);
 };
@@ -310,14 +373,12 @@ if(localStorage.getItem("batchModeActive") === "true") {
   req.onsuccess = e => { 
     db = e.target.result; 
     updatePendingCount(); 
-    // AUTO-SYNC REMOVED FROM HERE
   };
 })();
 
 function updateStatusDot() {
   const isOnline = navigator.onLine;
   statusDot.className = isOnline ? 'online' : 'offline';
-  // AUTO-SYNC REMOVED FROM HERE
 }
 window.addEventListener('online', updateStatusDot);
 window.addEventListener('offline', updateStatusDot);
@@ -333,11 +394,6 @@ async function updatePendingCount(){
   };
 }
 
-themeToggle.onclick = () => {
-  const isDark = document.body.classList.toggle("dark");
-  themeToggle.textContent = isDark ? "☀️" : "🌙";
-  localStorage.setItem("selfTransferTheme", isDark ? "dark" : "light");
-};
 if(localStorage.getItem("selfTransferTheme") === "dark") {
   document.body.classList.add("dark");
   themeToggle.textContent = "☀️";
@@ -345,7 +401,7 @@ if(localStorage.getItem("selfTransferTheme") === "dark") {
 
 date.value = new Date().toISOString().split("T")[0];
 denoms.forEach(d=>{
-  denDiv.innerHTML+=`<div class="denom-card"><div class="denom-label">₹${d}</div><input type="number" data-d="${d}" placeholder="0"></div>`;
+  denDiv.innerHTML+=`<div class="denom-card"><div class="denom-label">₹${d}</div><input type="number" value="0" data-d="${d}" placeholder="0"></div>`;
 });
 
 function buildAccounts(type, select, block, otherInput){
@@ -372,8 +428,8 @@ function calcCash(){
 fromType.onchange = () => { buildAccounts(fromType.value, fromAccount, document.getElementById("fromAccBlock"), fromAccountOther); cashBox.classList.toggle("hidden", fromType.value!=="Cash" && toType.value!=="Cash"); amount.readOnly = (fromType.value==="Cash"||toType.value==="Cash"); };
 toType.onchange = () => { buildAccounts(toType.value, toAccount, document.getElementById("toAccBlock"), toAccountOther); cashBox.classList.toggle("hidden", fromType.value!=="Cash" && toType.value!=="Cash"); amount.readOnly = (fromType.value==="Cash"||toType.value==="Cash"); };
 
-fromAccount.onchange = () => { const isOther = fromAccount.value === "Others"; fromAccountOther.classList.toggle("hidden", !isOther); fromAccountOther.required = isOther; };
-toAccount.onchange = () => { const isOther = toAccount.value === "Others"; toAccountOther.classList.toggle("hidden", !isOther); toAccountOther.required = isOther; };
+fromAccount.onchange = () => { const isOther = fromAccount.value === "Others"; fromAccountOther.classList.toggle('hidden', !isOther); fromAccountOther.required = isOther; };
+toAccount.onchange = () => { const isOther = toAccount.value === "Others"; toAccountOther.classList.toggle('hidden', !isOther); toAccountOther.required = isOther; };
 
 denDiv.addEventListener("input", calcCash);
 
@@ -426,19 +482,17 @@ selfForm.onsubmit = async e => {
 };
 
 async function executeSubmit() {
-  if(!currentPayload || isSubmitting) return; // Prevent double trigger
+  if(!currentPayload || isSubmitting) return; 
   
   confirmModal.classList.add("hidden");
   isSubmitting = true;
   
-  // Disable the button and show loading state
   submitBtn.disabled = true;
-  submitBtn.textContent = "Processing... Please wait";
+  submitBtn.textContent = "Processing...";
   submitBtn.style.opacity = "0.7";
-  submitBtn.style.cursor = "not-allowed";
 
   try {
-    const response = await fetch(SCRIPT_URL, { 
+    await fetch(SCRIPT_URL, { 
       method: "POST", 
       mode: "no-cors", 
       body: JSON.stringify(currentPayload) 
@@ -448,17 +502,16 @@ async function executeSubmit() {
     resetForm();
   } catch (err) {
     saveToDB(); 
-    alert("Network issue. Saved to local queue for later sync."); 
+    alert("Network issue. Saved to local queue."); 
   } finally {
     isSubmitting = false;
-    // Re-enable the button
     submitBtn.disabled = false;
     submitBtn.textContent = "Submit Transfer";
     submitBtn.style.opacity = "1";
-    submitBtn.style.cursor = "pointer";
     updatePendingCount();
   }
 }
+
 function saveToDB() {
     if(!db) return;
     db.transaction("transferQueue", "readwrite").objectStore("transferQueue").add(currentPayload);
@@ -490,7 +543,7 @@ function loadToForm(item){
 }
 
 function resetForm() {
-  const bState = batchToggle.checked; // PRESERVE STATE
+  const bState = batchToggle.checked;
   selfForm.reset(); selfForm.classList.remove("was-validated"); amount.classList.remove("manual-invalid");
   document.getElementById("fromAccBlock").classList.add("hidden"); document.getElementById("toAccBlock").classList.add("hidden");
   fromAccountOther.classList.add("hidden"); toAccountOther.classList.add("hidden");
@@ -540,8 +593,6 @@ async function manualSync() {
 
   const syncBtn = document.getElementById("btnSyncAll");
   const syncText = document.getElementById("syncText");
-  
-  // Disable button
   syncBtn.disabled = true;
   syncBtn.style.opacity = "0.7";
 
@@ -558,11 +609,10 @@ async function manualSync() {
       });
       updatePendingCount();
     } catch (e) {
-      alert("Sync interrupted due to network error.");
+      alert("Sync interrupted.");
       break;
     }
   }
-  
   syncText.textContent = "☁️ Sync All";
   syncBtn.disabled = false;
   syncBtn.style.opacity = "1";
@@ -573,8 +623,6 @@ document.getElementById("btnConfirmCancel").onclick = () => confirmModal.classLi
 btnViewQueue.onclick = () => { renderQueueTable(); queueModal.classList.remove("hidden"); };
 btnSyncAll.onclick = manualSync;
 closeModal.onclick = () => queueModal.classList.add("hidden");
-
-// AUTO SYNC COMPLETELY DISABLED. ONLY MANUAL SYNC VIA BUTTON ALLOWED.
 </script>
 </body>
 </html>
