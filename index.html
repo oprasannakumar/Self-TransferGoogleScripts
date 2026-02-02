@@ -40,14 +40,28 @@
     }
 
     form, .confirm-card {
-      background: var(--bg-card); max-width: 440px; margin: auto; padding: 22px;
+      background: var(--bg-card); max-width: 440px; margin: auto; padding: 22px; 
       border-radius: 16px; box-shadow: 0 18px 40px rgba(0,0,0,.08);
       border: 1px solid var(--border-color);
       position: relative;
       transition: background 0.5s ease, border-color 0.5s ease;
     }
 
-    .confirm-card { max-width: 550px; width: 90%; }
+    /* Standard Validation: Red Borders */
+    .was-validated input:invalid, 
+    .was-validated select:invalid {
+      border: 1.5px solid var(--danger) !important;
+      background-color: rgba(239, 68, 68, 0.03);
+    }
+
+    /* Cash Box External Border Highlight */
+    .was-validated #cashBox.invalid-cash {
+      border: 2px solid var(--danger) !important;
+      background-color: rgba(239, 68, 68, 0.05);
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.1);
+    }
+
+    .confirm-card { max-width: 550px; width: 75%; }
 
     .header-row-top {
       display: flex; align-items: center; justify-content: center;
@@ -108,7 +122,6 @@
       outline: none; 
       border-color:#2563eb; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
 
-
     .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
 
     #submitBtn, .btn-confirm, #btnSyncAll, #btnViewQueue, #btnRepeat, .btn-cancel, #btnStopSync { 
@@ -123,7 +136,7 @@
     hr { border: none; border-top: 1px dashed var(--border-color); margin: 20px 0; }
     .hidden { display: none !important; }
 
-    #cashBox { margin-top: 14px; background: var(--bg-body); padding: 14px; border-radius: 14px; border: 1px solid var(--border-color); }
+    #cashBox { margin-top: 14px; background: var(--bg-body); padding: 14px; border-radius: 14px; border: 1px solid var(--border-color); transition: all 0.3s ease; }
     #denominations, .confirm-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .denom-card, .matrix-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 5px; text-align: center; }
     .denom-label, .matrix-label { font-weight: 600; margin-bottom: 5px; font-size: 11px; color: var(--text-label); }
@@ -142,35 +155,9 @@
     .confirm-section-title { font-size: 12px; font-weight: 700; color: var(--primary); margin: 15px 0 8px 0; text-transform: uppercase; border-bottom: 1px solid var(--primary); width: fit-content; padding-right: 10px; }
 
     .table-container { overflow-x: auto; flex-grow: 1; background: var(--bg-card); }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 900px; table-layout: fixed; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 600px; table-layout: fixed; }
     th { text-align: center; padding: 8px; border-bottom: 2px solid var(--border-color); color: var(--text-label); }
     td { padding: 10px 5px; border-bottom: 1px solid var(--border-color); vertical-align: middle; text-align: center; color: var(--text-main); }
-
-table td:nth-child(1), table th:nth-child(1) {
-  text-align: center;/* Options: left, center, right */width:10%;
-  padding-left: 0px;/* Optional: adds a small gap from the border */
-}
-table td:nth-child(2), table th:nth-child(2) {
-  text-align: center;/* Options: left, center, right */width:20%;
-  padding-left: 0px;/* Optional: adds a small gap from the border */
-}
-table td:nth-child(3), table th:nth-child(3) {
-  text-align: center;/* Options: left, center, right */width:30%;
-  padding-left: 0px;/* Optional: adds a small gap from the border */
-}
-table td:nth-child(4), table th:nth-child(4) {
-  text-align: center;/* Options: left, center, right */width:30%;
-  padding-left: 0px;/* Optional: adds a small gap from the border */
-}
-table td:nth-child(5), table th:nth-child(6) {
-  text-align: center;/* Options: left, center, right */width:5%;
-  padding-left: 0px;/* Optional: adds a small gap from the border */
-}
-table td:nth-child(6), table th:nth-child(6) {
-  text-align: center;/* Options: left, center, right */width:5%;
-  padding-left: 0px;/* Optional: adds a small gap from the border */
-}
-
 
     .action-btn { border: none; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 0 4px; }
     .btn-del-mini { background: #fee2e2; color: #ef4444; }
@@ -328,16 +315,17 @@ const syncCountLabel = getEl("syncCount"), btnSyncAll = getEl("btnSyncAll"), btn
 const themeToggle = getEl("themeToggle"), statusDot = getEl("statusDot"), confirmModal = getEl("confirmModal"), confirmDetails = getEl("confirmDetails"), navFab = getEl('navFab'), fabBtn = getEl('fabToggle');
 
 date.value = new Date().toISOString().split("T")[0];
-denoms.forEach(d => { denDiv.innerHTML += `<div class="denom-card"><div class="denom-label">₹${d}</div><input type="number" value="0" data-d="${d}" placeholder="0"></div>`; });
+denoms.forEach(d => { denDiv.innerHTML += `<div class="denom-card"><div class="denom-label">₹${d}</div><input type="number" data-d="${d}" min="0" placeholder="0"></div>`; });
 
 fabBtn.onclick = e => { e.stopPropagation(); navFab.classList.toggle('active'); };
 document.addEventListener('click', () => navFab.classList.remove('active'));
 
 themeToggle.onclick = () => {
-themeToggle.classList.add('theme-rotate');
-      const isDark = document.body.classList.toggle("dark");
-      setTimeout(() => { themeToggle.textContent = isDark ? "☀️" : "🌙"; }, 150);
-      setTimeout(() => themeToggle.classList.remove('theme-rotate'), 500);};
+  themeToggle.classList.add('theme-rotate');
+  const isDark = document.body.classList.toggle("dark");
+  setTimeout(() => { themeToggle.textContent = isDark ? "☀️" : "🌙"; }, 250);
+  setTimeout(() => themeToggle.classList.remove('theme-rotate'), 500);
+};
 
 function updateStatusDot() { 
   statusDot.className = navigator.onLine ? 'online' : 'offline'; 
@@ -379,21 +367,61 @@ function buildAccounts(type, select, block, otherInput){
 function calcCash(){
   let total = 0;
   document.querySelectorAll("[data-d]").forEach(i => total += Number(i.dataset.d) * Number(i.value || 0));
-  if(fromType.value === "Cash" || toType.value === "Cash") amount.value = total;
+  const isCashMode = fromType.value === "Cash" || toType.value === "Cash";
+  
+  if(isCashMode) {
+    amount.value = total > 0 ? total : "";
+    if(total <= 0) {
+      amount.setCustomValidity("Total amount must be greater than zero");
+      cashBox.classList.add("invalid-cash");
+    } else {
+      amount.setCustomValidity("");
+      cashBox.classList.remove("invalid-cash");
+    }
+  } else {
+    amount.setCustomValidity("");
+    cashBox.classList.remove("invalid-cash");
+  }
 }
 
-fromType.onchange = () => { buildAccounts(fromType.value, fromAccount, getEl("fromAccBlock"), fromAccountOther); cashBox.classList.toggle("hidden", fromType.value!=="Cash" && toType.value!=="Cash"); amount.readOnly = (fromType.value==="Cash"||toType.value==="Cash"); };
-toType.onchange = () => { buildAccounts(toType.value, toAccount, getEl("toAccBlock"), toAccountOther); cashBox.classList.toggle("hidden", fromType.value!=="Cash" && toType.value!=="Cash"); amount.readOnly = (fromType.value==="Cash"||toType.value==="Cash"); };
-fromAccount.onchange = () => { fromAccountOther.classList.toggle('hidden', fromAccount.value !== "Others"); };
-toAccount.onchange = () => { toAccountOther.classList.toggle('hidden', toAccount.value !== "Others"); };
+selfForm.addEventListener('input', (e) => {
+  if (selfForm.classList.contains('was-validated')) {
+    if (e.target.checkValidity()) {
+      e.target.style.borderColor = "";
+      e.target.style.backgroundColor = "";
+      // If we are typing in denominations, also check if we can remove box highlight
+      if(e.target.dataset.d) calcCash();
+    }
+  }
+});
+
+fromType.onchange = () => { 
+  buildAccounts(fromType.value, fromAccount, getEl("fromAccBlock"), fromAccountOther); 
+  const isCash = fromType.value === "Cash" || toType.value === "Cash";
+  cashBox.classList.toggle("hidden", !isCash); 
+  amount.readOnly = isCash;
+  calcCash();
+};
+
+toType.onchange = () => { 
+  buildAccounts(toType.value, toAccount, getEl("toAccBlock"), toAccountOther); 
+  const isCash = fromType.value === "Cash" || toType.value === "Cash";
+  cashBox.classList.toggle("hidden", !isCash); 
+  amount.readOnly = isCash;
+  calcCash();
+};
+
+fromAccount.onchange = () => { fromAccountOther.classList.toggle('hidden', fromAccount.value !== "Others"); fromAccountOther.required = fromAccount.value === "Others"; };
+toAccount.onchange = () => { toAccountOther.classList.toggle('hidden', toAccount.value !== "Others"); toAccountOther.required = toAccount.value === "Others"; };
 denDiv.addEventListener("input", calcCash);
 
 selfForm.onsubmit = async e => {
   e.preventDefault();
+  calcCash();
   selfForm.classList.add("was-validated");
-  const val = parseFloat(amount.value);
-  if(!selfForm.checkValidity() || isNaN(val) || val <= 0) return;
+  if(!selfForm.checkValidity()) return;
   
+  const val = parseFloat(amount.value);
   const fAcc = fromType.value === "Cash" ? "Cash" : (fromAccount.value === "Others" ? fromAccountOther.value : fromAccount.value);
   const tAcc = toType.value === "Cash" ? "Cash" : (toAccount.value === "Others" ? toAccountOther.value : toAccount.value);
 
@@ -423,7 +451,12 @@ async function executeSubmit() {
   if(!currentPayload || isSubmitting) return; 
   confirmModal.classList.add("hidden");
   isSubmitting = true; submitBtn.disabled = true; submitBtn.textContent = "Processing...";
-  try { await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(currentPayload) }); alert("Saved!"); resetForm(); } 
+  try { 
+    await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(currentPayload) }); 
+    localStorage.setItem("lastTransfer", JSON.stringify(currentPayload));
+    alert("Saved!"); 
+    resetForm(); 
+  } 
   catch (err) { saveToDB(); alert("Saved to queue."); } 
   finally { isSubmitting = false; submitBtn.disabled = false; submitBtn.textContent = "Submit Transfer"; updatePendingCount(); }
 }
@@ -470,27 +503,38 @@ function loadToForm(item){
     date.value = item.date; narration.value = item.narration;
     fromType.value = item.fromType; fromType.dispatchEvent(new Event('change'));
     if(item.fromType !== "Cash"){
-        if(bankAccounts.concat(creditCards, rewardPlatforms).includes(item.fromAccount)) fromAccount.value = item.fromAccount;
+        const list = bankAccounts.concat(creditCards, rewardPlatforms);
+        if(list.includes(item.fromAccount)) fromAccount.value = item.fromAccount;
         else { fromAccount.value = "Others"; fromAccount.dispatchEvent(new Event('change')); fromAccountOther.value = item.fromAccount; }
     }
     toType.value = item.toType; toType.dispatchEvent(new Event('change'));
     if(item.toType !== "Cash"){
-        if(bankAccounts.concat(creditCards, rewardPlatforms).includes(item.toAccount)) toAccount.value = item.toAccount;
+        const list = bankAccounts.concat(creditCards, rewardPlatforms);
+        if(list.includes(item.toAccount)) toAccount.value = item.toAccount;
         else { toAccount.value = "Others"; toAccount.dispatchEvent(new Event('change')); toAccountOther.value = item.toAccount; }
     }
-    if(item.fromType === "Cash" || item.toType === "Cash"){ denoms.forEach(d => { document.querySelector(`[data-d="${d}"]`).value = item.denoms["d"+d] || 0; }); calcCash(); } else amount.value = item.amount;
+    if(item.fromType === "Cash" || item.toType === "Cash"){ 
+      denoms.forEach(d => { document.querySelector(`[data-d="${d}"]`).value = item.denoms["d"+d] || 0; }); 
+      calcCash(); 
+    } else {
+      amount.value = item.amount;
+    }
 }
 
 function resetForm() {
   const bState = batchToggle.checked; selfForm.reset(); selfForm.classList.remove("was-validated");
   getEl("fromAccBlock").classList.add("hidden"); getEl("toAccBlock").classList.add("hidden");
   cashBox.classList.add("hidden"); date.value = new Date().toISOString().split("T")[0];
-  document.querySelectorAll("[data-d]").forEach(i => i.value = 0); batchToggle.checked = bState;
+  document.querySelectorAll("[data-d]").forEach(i => i.value = ""); 
+  amount.setCustomValidity("");
+  cashBox.classList.remove("invalid-cash");
+  batchToggle.checked = bState;
 }
 
 getEl("btnRepeat").onclick = () => { const last = JSON.parse(localStorage.getItem("lastTransfer")); if(last) loadToForm(last); };
 getEl("btnConfirmFinal").onclick = executeSubmit; getEl("btnConfirmCancel").onclick = () => confirmModal.classList.add("hidden");
 btnViewQueue.onclick = () => queueModal.classList.remove("hidden"); btnSyncAll.onclick = manualSync; btnStopSync.onclick = () => { syncAborted = true; };
+
 if(localStorage.getItem("selfTransferTheme") === "dark") { 
   document.body.classList.add("dark"); 
   themeToggle.textContent = "☀️"; 
