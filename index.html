@@ -180,15 +180,49 @@ hr { border: none; border-top: 1px dashed var(--border-color); margin: 20px 0; }
 .confirm-section-title { font-size: 12px; font-weight: 700; color: var(--primary); margin: 15px 0 5px 0; text-transform: uppercase; border-bottom: 1px solid var(--primary); width: fit-content; padding-right: 10px; }
 
 .table-container { overflow-x: auto; flex-grow: 1; background: var(--bg-card); }
-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 750px; table-layout: fixed; }
-th { background: var(--bg-body); color: var(--text-label); font-weight: 600; text-align: center; padding: 10px; border-bottom: 1px solid var(--border-color); text-transform: uppercase; font-size: 10px; }
-td { padding: 10px; border-bottom: 1px solid var(--border-color); vertical-align: middle; text-align: center; color: var(--text-main); }
+table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 900px; table-layout: fixed; }
+th { text-align: center; padding: 5px; border-bottom: 2px solid var(--border-color); color: var(--text-label); transition: color 0.5s ease; }
+td { padding: 5px; border-bottom: 1px solid var(--border-color); vertical-align: middle; text-align: center; color: var(--text-main); }
+
+table td:nth-child(1), table th:nth-child(1) {
+  text-align: center;width:40px; /* Options: left, center, right */
+  padding-left: 0px;/* Optional: adds a small gap from the border */
+}
+
+table td:nth-child(2), table th:nth-child(2) {
+  text-align: center;/* Options: left, center, right */width:150px;
+  padding-left: 0px;/* Optional: adds a small gap from the border */
+}
+
+table td:nth-child(3), table th:nth-child(3) {
+  text-align: center;width:170px; /* Options: left, center, right */
+  padding-left: 0px;/* Optional: adds a small gap from the border */
+}
+
+table td:nth-child(4), table th:nth-child(4) {
+  text-align: center;width:170px; /* Options: left, center, right */
+  padding-left: 0px;/* Optional: adds a small gap from the border */
+}
+
+/* Target the 5th column (Amount) */
+table td:nth-child(5), table th:nth-child(5) {
+  text-align: center;padding-left:0px;width: 50px; /* Change to left, center, or right */
+  padding-right: 0px; /* Adds space from the edge if right-aligned */
+   /* You can adjust this width as needed */
+}
+
+table td:nth-child(6), table th:nth-child(6) {
+  text-align: center;width:50px; /* Options: left, center, right */
+  padding-left: 0px;/* Optional: adds a small gap from the border */
+}
 
 .action-btn { border: none; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 0 4px; }
 .btn-del-mini { background: #fee2e2; color: #ef4444; }
 .btn-edit-mini { background: #e0e7ff; color: #4338ca; }
 body.dark .btn-del-mini { background: #450a0a; color: #f87171; }
 body.dark .btn-edit-mini { background: #1e1b4b; color: #818cf8; }
+
+.queue-denoms { font-size: 10px; color: #2563eb; font-family: monospace; display: block; line-height: 1.2; width:170px;}
 
 @keyframes blink { 50% { opacity: 0.5; } }
 .saving-text { animation: blink 1s infinite; }
@@ -376,6 +410,14 @@ if(localStorage.getItem("batchModeActive") === "true") {
   };
 })();
 
+function formatDisplayDate(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
+}
+
+
 function updateStatusDot() {
   const isOnline = navigator.onLine;
   statusDot.className = isOnline ? 'online' : 'offline';
@@ -463,7 +505,7 @@ selfForm.onsubmit = async e => {
   }
 
   let detailsHtml = `
-    <div class="confirm-item"><span class="confirm-label">Date</span><span class="confirm-val">${currentPayload.date}</span></div>
+    <div class="confirm-item"><span class="confirm-label">Date</span><span class="confirm-val">${formatDisplayDate(currentPayload.date)}</span></div>
     <div class="confirm-item"><span class="confirm-label">Narration</span><span class="confirm-val">${currentPayload.narration}</span></div>
     <div class="confirm-item"><span class="confirm-label">From</span><span class="confirm-val">${currentPayload.fromType} (${currentPayload.fromAccount})</span></div>
     <div class="confirm-item"><span class="confirm-label">To</span><span class="confirm-val">${currentPayload.toType} (${currentPayload.toAccount})</span></div>
@@ -561,11 +603,23 @@ function renderQueueTable() {
     if(!items.length) queueTableBody.innerHTML = "<tr><td colspan='6'>Queue is empty</td></tr>";
     items.forEach(item => {
       const tr = document.createElement("tr");
+      
+      const formatDenoms = (d) => denoms.map(v => `${v}x${d['d'+v]||0}`).join(', ');
+      
+      const fromDisplay = item.fromType === "Cash" ? 
+        `<strong>Cash</strong><br><span class="queue-denoms">${formatDenoms(item.denoms)}</span>` : 
+        `${item.fromType}<br><small>(${item.fromAccount})</small>`;
+        
+      const toDisplay = item.toType === "Cash" ? 
+        `<strong>Cash</strong><br><span class="queue-denoms">${formatDenoms(item.denoms)}</span>` : 
+        `${item.toType}<br><small>(${item.toAccount})</small>`;
+
       tr.innerHTML = `
-        <td>${item.date}</td><td>${item.narration}</td>
-        <td>${item.fromType}<br><small>(${item.fromAccount})</small></td>
-        <td>${item.toType}<br><small>(${item.toAccount})</small></td>
-        <td style="font-weight:700">₹${item.amount.toFixed(2)}</td>
+        <td>${formatDisplayDate(item.date)}</td>
+        <td>${item.narration}</td>
+        <td>${fromDisplay}</td>
+        <td>${toDisplay}</td>
+        <td>₹${item.amount.toFixed(2)}</td>
         <td>
           <button class="action-btn btn-edit-mini" onclick="editItem(${item.id})">✏️</button>
           <button class="action-btn btn-del-mini" onclick="deleteItem(${item.id})">🗑️</button>
@@ -597,7 +651,7 @@ async function manualSync() {
   syncBtn.style.opacity = "0.7";
 
   const tx = db.transaction("transferQueue", "readonly");
-  const store = tx.objectStore("transferQueue");
+  const store = tx.objectStore(STORE_NAME);
   const items = await new Promise(res => { store.getAll().onsuccess = e => res(e.target.result); });
 
   for (let i = 0; i < items.length; i++) {
@@ -626,3 +680,4 @@ closeModal.onclick = () => queueModal.classList.add("hidden");
 </script>
 </body>
 </html>
+
