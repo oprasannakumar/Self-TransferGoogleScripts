@@ -9,9 +9,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
 :root { 
-  --primary:#22c55e; 
+  --primary:#2563eb; 
   --primary-hover:#1e40af; 
-  --secondary: #3b82f6;
+  --secondary: #10b981;
   --danger:#ef4444; 
   --bg-body: linear-gradient(135deg, #eef2f7, #f9fafb);
   --bg-card: #ffffff;
@@ -47,7 +47,7 @@ form, .confirm-card {
   transition: background 0.5s ease, border-color 0.5s ease;
 }
 
-.confirm-card { max-width: 550px; width: 95%; }
+.confirm-card { max-width: 550px; width: 75%; }
 
 /* Perfectly centered header logic */
 .header-row-top {
@@ -119,7 +119,7 @@ h2 { margin: 0; font-weight: 600; color: var(--text-main); font-size: 20px; text
 input:checked + .slider { background-color: var(--primary); }
 input:checked + .slider:before { transform: translateX(18px); }
 
-h3 { margin: 18px 0 8px; font-size: 14px; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+h3 { margin: 18px 0 8px; font-size: 14px; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; }
 label { font-size: 13px; font-weight: 600; margin-top: 14px; display: block; color: var(--text-label); }
 
 input, select, button {
@@ -680,4 +680,3 @@ closeModal.onclick = () => queueModal.classList.add("hidden");
 </script>
 </body>
 </html>
-
