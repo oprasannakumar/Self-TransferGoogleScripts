@@ -71,7 +71,7 @@
       display: flex; align-items: center; justify-content: center; 
       font-size: 14px; padding: 0; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0;
     }
-
+    .theme-rotate { transform: rotate(360deg); }
     .nav-fab-container { position: relative; }
     .nav-options { 
       position: absolute; right: 0; top: 40px; display: flex; flex-direction: column; 
@@ -309,10 +309,10 @@ fabBtn.onclick = e => { e.stopPropagation(); navFab.classList.toggle('active'); 
 document.addEventListener('click', () => navFab.classList.remove('active'));
 
 themeToggle.onclick = () => {
-  const isDark = document.body.classList.toggle("dark");
-  themeToggle.textContent = isDark ? "☀️" : "🌙";
-  localStorage.setItem("selfTransferTheme", isDark ? "dark" : "light");
-};
+themeToggle.classList.add('theme-rotate');
+      const isDark = document.body.classList.toggle("dark");
+      setTimeout(() => { themeToggle.textContent = isDark ? "☀️" : "🌙"; }, 150);
+      setTimeout(() => themeToggle.classList.remove('theme-rotate'), 500);};
 
 function updateStatusDot() { 
   statusDot.className = navigator.onLine ? 'online' : 'offline'; 
