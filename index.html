@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Self Transfer | Smart Sync Pro</title>
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -965,6 +969,15 @@ if(localStorage.getItem("selfTransferTheme") === "dark") {
   document.body.classList.add("dark"); 
   themeToggle.textContent = "☀️"; 
 }
+</script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Invoice App Registered'))
+        .catch(err => console.log('PWA Registration Failed', err));
+    });
+  }
 </script>
 </body>
 </html>
