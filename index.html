@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Self Transfer | Smart Sync Pro</title>
-  <link rel="manifest" href="manifest.json">
+   <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ffffff">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -555,36 +557,97 @@ selfForm.addEventListener('input', (e) => {
 selfForm.onsubmit = async e => {
   e.preventDefault();
   
-  // 1. Apply visual 'was-validated' class
   selfForm.classList.add("was-validated");
 
-  // 2. Perform Validation
-  const isFormValid = selfForm.checkValidity(); // Checks all [required] fields
-  const isCashValid = validateCash();           // Checks cash box math
+  const isFormValid = selfForm.checkValidity();
+  const isCashValid = validateCash();
 
   if (!isFormValid || !isCashValid) {
-    // Scroll to the first error found
     const firstError = document.querySelector(':invalid, .invalid-cash');
     if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
 
-  // 3. Totals Logic
-  const outTotal = [...document.querySelectorAll('#sourceContainer .amt-input')].reduce((sum, i) => sum + Number(i.value), 0);
-  const inTotal = [...document.querySelectorAll('#destContainer .amt-input')].reduce((sum, i) => sum + Number(i.value), 0);
+  let sourceHtml = "";
+  let destHtml = "";
+  let outTotal = 0;
+  let inTotal = 0;
+
+  // Helper to build the FULL 3x3 Grid for confirmation (including 0s)
+  const getDenomMatrix = () => {
+    let matrixHtml = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; background: var(--bg-body); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);">`;
+    
+    document.querySelectorAll("[data-d]").forEach(i => {
+      const count = parseInt(i.value || 0);
+      // Determine if the card should look "active" or "faded"
+      const opacity = count > 0 ? "1" : "0.4";
+      const border = count > 0 ? "var(--primary)" : "var(--border-color)";
+      
+      matrixHtml += `
+        <div style="font-size: 10px; background: var(--bg-card); border: 1px solid ${border}; border-radius: 6px; padding: 4px 2px; text-align: center; opacity: ${opacity}; transition: opacity 0.3s;">
+          <div style="font-weight: bold; color: var(--text-main); font-size: 11px;">₹${i.dataset.d}</div>
+          <div style="color: var(--text-label);">${count}</div>
+        </div>`;
+    });
+    
+    matrixHtml += `</div>`;
+    return matrixHtml;
+  };
+
+  // Process Sources
+  document.querySelectorAll('#sourceContainer .mode-row').forEach(row => {
+    const type = row.querySelector('.type-sel').value;
+    const acc = row.querySelector('.acc-sel').value === "Others" 
+                ? row.querySelector('.other-acc-input').value 
+                : (row.querySelector('.acc-sel').value || "Cash");
+    const val = parseFloat(row.querySelector('.amt-input').value || 0);
+    
+    if (val > 0) {
+      outTotal += val;
+      const cashDetails = (type === "Cash") ? getDenomMatrix() : "";
+      sourceHtml += `
+        <div style="padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+          <div class="confirm-item" style="border:none; padding:0; margin-bottom: 4px;">
+            <span style="color:var(--danger); font-weight:600;">● ${acc} (${type})</span>
+            <span style="font-weight:600;">₹${val.toFixed(2)}</span>
+          </div>
+          ${cashDetails}
+        </div>`;
+    }
+  });
+
+  // Process Destinations
+  document.querySelectorAll('#destContainer .mode-row').forEach(row => {
+    const type = row.querySelector('.type-sel').value;
+    const acc = row.querySelector('.acc-sel').value === "Others" 
+                ? row.querySelector('.other-acc-input').value 
+                : (row.querySelector('.acc-sel').value || "Cash");
+    const val = parseFloat(row.querySelector('.amt-input').value || 0);
+    
+    if (val > 0) {
+      inTotal += val;
+      const cashDetails = (type === "Cash") ? getDenomMatrix() : "";
+      destHtml += `
+        <div style="padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+          <div class="confirm-item" style="border:none; padding:0; margin-bottom: 4px;">
+            <span style="color:var(--secondary); font-weight:600;">● ${acc} (${type})</span>
+            <span style="font-weight:600;">₹${val.toFixed(2)}</span>
+          </div>
+          ${cashDetails}
+        </div>`;
+    }
+  });
 
   if (outTotal === 0 && inTotal === 0) {
     alert("Please enter transaction amounts.");
     return;
   }
 
-  // 4. Batch/Offline Mode
   if (batchToggle.checked || !navigator.onLine) {
     saveBatchToDB(outTotal, inTotal);
     return;
   }
 
-  // 5. Reference & Modal
   const today = new Date();
   const dateStr = today.getFullYear().toString() + (today.getMonth() + 1).toString().padStart(2, '0') + today.getDate().toString().padStart(2, '0');
   const suffix = Math.random().toString(36).substr(2, 4).toUpperCase();
@@ -592,14 +655,28 @@ selfForm.onsubmit = async e => {
 
   confirmDetails.innerHTML = `
     <div class="confirm-item"><span>Date</span><span>${formatDisplayDate(date.value)}</span></div>
-    <div class="confirm-item"><span>Narration</span><span>${narration.value}</span></div>
-    <div class="confirm-item"><span>Reference ID</span><span style="font-family: monospace; color: var(--primary); font-weight: bold;">${currentBatchRef}</span></div>
+    <div class="confirm-item"><span>Ref ID</span><span style="font-family:monospace; font-weight:bold;">${currentBatchRef}</span></div>
+    
+    <div class="confirm-section-title">From (Sources)</div>
+    ${sourceHtml}
+    <div class="confirm-item" style="font-weight:bold; margin-top:10px; font-size:14px;"><span>Total Out</span><span>₹${outTotal.toFixed(2)}</span></div>
+
+    <div class="confirm-section-title" style="margin-top:24px;">To (Destinations)</div>
+    ${destHtml}
+    <div class="confirm-item" style="font-weight:bold; margin-top:10px; font-size:14px;"><span>Total In</span><span>₹${inTotal.toFixed(2)}</span></div>
+    
     <hr>
-    <div class="confirm-item"><span>Total From</span><span>₹${outTotal.toFixed(2)}</span></div>
-    <div class="confirm-item"><span>Total To</span><span>₹${inTotal.toFixed(2)}</span></div>
+    <div class="confirm-item" style="font-size:16px; font-weight:bold; background: var(--bg-body); padding: 12px; border-radius: 10px;">
+      <span>Balance Diff</span>
+      <span style="color:${Math.abs(outTotal - inTotal) < 0.01 ? 'var(--secondary)' : 'var(--danger)'}">
+        ₹${(outTotal - inTotal).toFixed(2)}
+      </span>
+    </div>
   `;
+
   confirmModal.classList.remove("hidden");
 };
+
 function validateCash() {
   const hasCash = [...document.querySelectorAll('.type-sel')].some(s => s.value === 'Cash');
   const cb = getEl("cashBox");
@@ -970,6 +1047,7 @@ if(localStorage.getItem("selfTransferTheme") === "dark") {
   themeToggle.textContent = "☀️"; 
 }
 </script>
+
   <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
