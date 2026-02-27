@@ -123,7 +123,27 @@
       border-radius: 10px; border: 1px solid var(--border-color); font-size: 14px; box-sizing: border-box;
       background: var(--bg-input); color: var(--text-main); transition: all 0.3s ease;
     }
+.mode-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  align-items: center;
+}
 
+.mode-row .type-sel {
+  flex: 1.25;   /* Slightly wider */
+}
+
+.mode-row .acc-sel {
+  flex: 1.8;   /* Wider for account names */
+}
+
+.mode-row .amt-input {
+  flex: 0.8;   /* Smaller width */
+  max-width: 75px; /* Hard cap */
+  text-align: left;
+  font-weight: 600;
+}
     input:focus, select:focus { 
       outline: none; 
       border-color:#2563eb; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
@@ -188,16 +208,42 @@
   gap: 5px;
   font-size: 13px;
 }
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 18px 0 8px;
+}
+
+.section-header h3 {
+  margin: 0;
+}
+
+.btn-add-mode {
+  width: auto;
+  padding: 4px 12px;
+  height: 28px;
+  font-size: 11px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--secondary);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
 .btn-add-mode {
   background: var(--secondary);
   color: white;
   border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
   margin-top: 5px;
+  height:20px;
+  width: fit-content;        /* Dynamic width based on text */
 }
 
   </style>
@@ -237,14 +283,23 @@
   <input type="text" id="narration" required placeholder="What is this transfer for?">
 
   <hr>
-<h3>From (Sources)</h3>
+<div class="section-header">
+  <h3>From (Sources)</h3>
+  <button type="button" class="btn-add-mode" onclick="addMode('source')">
+    + Add
+  </button>
+</div>
 <div id="sourceContainer"></div>
-<button type="button" class="btn-add-mode" onclick="addMode('source')">+ Add Source</button>
 
 <hr>
-<h3>To (Destinations)</h3>
+
+<div class="section-header">
+  <h3>To (Destinations)</h3>
+  <button type="button" class="btn-add-mode" onclick="addMode('dest')">
+    + Add
+  </button>
+</div>
 <div id="destContainer"></div>
-<button type="button" class="btn-add-mode" onclick="addMode('dest')">+ Add Destination</button>
 
 <div id="balanceSummary" class="balance-box">
   <div>Total Out: <span id="totalOut">₹0.00</span></div>
@@ -396,9 +451,13 @@ function addMode(side) {
         <option value="">Type</option>
         <option>Cash</option><option>Upi</option><option>Debit</option><option>Credit</option><option>Rewards</option>
       </select>
-      <select class="acc-sel hidden" id="acc-${rowId}"></select>
-      <input type="number" class="amt-input" placeholder="Amount" oninput="calcSplitTotals()" required>
-      <button type="button" onclick="this.parentElement.parentElement.remove(); calcSplitTotals(); checkCashVisibility();" style="width:40px; background:#fee2e2; color:#ef4444; border:none; border-radius:8px;">✕</button>
+      <select class="acc-sel" id="acc-${rowId}" required>
+  <option value="">Account</option>
+</select>
+      <input type="number" class="amt-input" placeholder="Amt"
+oninput="calcSplitTotals(); if(this.closest('#sourceContainer')) autoSyncDestination();"
+required>
+      <button type="button" onclick="this.parentElement.parentElement.remove(); calcSplitTotals(); autoSyncDestination(); checkCashVisibility();" style="width:40px; background:#fee2e2; color:#ef4444; border:none; border-radius:8px;">✕</button>
     </div>
   `; // Added closing div here
   container.appendChild(div);  
@@ -491,7 +550,34 @@ function calcSplitTotals() {
   // Visual feedback for balanced vs unbalanced
   diffEl.style.color = diff < 0.01 ? 'var(--secondary)' : 'var(--danger)';
 }
+function autoSyncDestination() {
+  let totalSource = 0;
 
+  document.querySelectorAll('#sourceContainer .amt-input').forEach(i => {
+    totalSource += Number(i.value || 0);
+  });
+
+  const destRows = document.querySelectorAll('#destContainer .mode-row');
+  if (destRows.length === 0) return;
+
+  if (destRows.length === 1) {
+    destRows[0].querySelector('.amt-input').value =
+      totalSource !== 0 ? totalSource : "";
+  }
+
+  if (destRows.length > 1) {
+    destRows.forEach((row, index) => {
+      const amtField = row.querySelector('.amt-input');
+      if (index === 0) {
+        amtField.value = totalSource !== 0 ? totalSource : "";
+      } else {
+        amtField.value = "";
+      }
+    });
+  }
+
+  calcSplitTotals();
+}
 // Global listener for denominations to trigger calculation
 document.addEventListener('input', (e) => {
   if (e.target.dataset.d) {
@@ -957,7 +1043,7 @@ function loadToForm(items) {
           <option>Cash</option><option>Upi</option><option>Debit</option><option>Credit</option><option>Rewards</option>
         </select>
         <select class="acc-sel hidden" id="acc-${rowId}"></select>
-        <input type="number" class="amt-input" value="${item.amount}" placeholder="Amount" oninput="calcSplitTotals()" required>
+        <input type="number" class="amt-input" value="${item.amount}" placeholder="Amt" oninput="calcSplitTotals()" required>
         <button type="button" onclick="this.parentElement.parentElement.remove(); calcSplitTotals(); checkCashVisibility();" style="width:40px; background:#fee2e2; color:#ef4444; border:none; border-radius:8px;">✕</button>
       </div>
     `;
