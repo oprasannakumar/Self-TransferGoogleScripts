@@ -130,20 +130,13 @@
   align-items: center;
 }
 
-.mode-row .type-sel {
-  flex: 1.25;   /* Slightly wider */
-}
+.mode-row.full-width .type-sel { flex: 1.2; }
+.mode-row.full-width .acc-sel { flex: 2.2; }
+.mode-row.full-width .amt-input { flex: 1; }
 
-.mode-row .acc-sel {
-  flex: 1.8;   /* Wider for account names */
-}
-
-.mode-row .amt-input {
-  flex: 0.8;   /* Smaller width */
-  max-width: 75px; /* Hard cap */
-  text-align: left;
-  font-weight: 600;
-}
+.mode-row:not(.full-width) .type-sel { flex: 1.2; }
+.mode-row:not(.full-width) .acc-sel { flex: 1.8; }
+.mode-row:not(.full-width) .amt-input { flex: 0.7; }
     input:focus, select:focus { 
       outline: none; 
       border-color:#2563eb; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
@@ -218,10 +211,23 @@
 .section-header h3 {
   margin: 0;
 }
+.delete-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
 .btn-add-mode {
   width: auto;
-  padding: 4px 12px;
   height: 28px;
   font-size: 11px;
   border-radius: 8px;
@@ -457,12 +463,42 @@ function addMode(side) {
       <input type="number" class="amt-input" placeholder="Amt"
 oninput="calcSplitTotals(); if(this.closest('#sourceContainer')) autoSyncDestination();"
 required>
-      <button type="button" onclick="this.parentElement.parentElement.remove(); calcSplitTotals(); autoSyncDestination(); checkCashVisibility();" style="width:40px; background:#fee2e2; color:#ef4444; border:none; border-radius:8px;">✕</button>
+      <button type="button"
+class="delete-btn"
+onclick="removeMode(this)">
+✕
+</button>
     </div>
   `; // Added closing div here
   container.appendChild(div);  
+  updateDeleteButtons(container);
 }
+function updateDeleteButtons(container) {
+  const rows = container.querySelectorAll('.mode-row');
 
+  rows.forEach((row, index) => {
+    const delBtn = row.querySelector('.delete-btn');
+
+    if (index === 0) {
+      row.classList.add("full-width");
+      if (delBtn) delBtn.style.display = "none";
+    } else {
+      row.classList.remove("full-width");
+      if (delBtn) delBtn.style.display = "inline-flex";
+    }
+  });
+}
+function removeMode(btn) {
+  const row = btn.closest('.mode-row');
+  const container = row.parentElement;
+
+  row.remove();
+
+  updateDeleteButtons(container);
+  calcSplitTotals();
+  autoSyncDestination();
+  checkCashVisibility();
+}
 
 function handleTypeChange(select, rowId) {
   const type = select.value;
