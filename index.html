@@ -8,8 +8,6 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
@@ -130,9 +128,6 @@
   align-items: center;
 }
 
-.mode-row.full-width .type-sel { flex: 1.2; }
-.mode-row.full-width .acc-sel { flex: 2.2; }
-.mode-row.full-width .amt-input { flex: 1; }
 
 .mode-row:not(.full-width) .type-sel { flex: 1.2; }
 .mode-row:not(.full-width) .acc-sel { flex: 1.8; }
@@ -207,23 +202,29 @@
   align-items: center;
   margin: 18px 0 8px;
 }
-
+form {
+  overflow-x: hidden;
+}
 .section-header h3 {
   margin: 0;
 }
-.delete-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  background: #fee2e2;
-  color: #ef4444;
-  border: 1px solid #fecaca;
+.swipe-wrapper {
+  position: relative;
+  margin-bottom: 10px;
+}
+.mode-row-content .type-sel { flex: 1.2; }
+.mode-row-content .acc-sel { flex: 1.8; }
+.mode-row-content .amt-input { flex: 1; }
+.mode-row-content {
   display: flex;
+  gap: 8px;
   align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  padding: 0 8px;
+  height: var(--btn-h); /* 44px */
+  background: var(--bg-card);
+  transition: transform 0.25s ease;
+  position: relative;
+  z-index: 2;
 }
 
 .btn-add-mode {
@@ -239,18 +240,7 @@
   border: none;
   cursor: pointer;
 }
-.btn-add-mode {
-  background: var(--secondary);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  margin-top: 5px;
-  height:20px;
-  width: fit-content;        /* Dynamic width based on text */
-}
+
 
   </style>
 </head>
@@ -381,11 +371,6 @@ const creditCards=["Axis Flipkart","Axis MyZone","Axis Neo","HDFC PhonePe","HDFC
 const rewardPlatforms=["Amazon", "Flipkart", "Supermoney", "Payzapp", "MobiKwik", "Tata Neu"];
 const denoms=[500,200,100,50,20,10,5,2,1];
 // Add this right after your 'denoms' array initialization
-document.addEventListener('input', (e) => {
-  if (e.target.dataset.d) {
-    calcCash();
-  }
-});
 
 const getEl = id => document.getElementById(id);
 const formatDisplayDate = dStr => {
@@ -447,58 +432,40 @@ async function updatePendingCount(){
 function addMode(side) {
   const container = getEl(side === 'source' ? 'sourceContainer' : 'destContainer');
   const rowId = Date.now() + Math.random();
+
   const div = document.createElement('div');
   div.className = 'mode-row';
   div.id = `row-${rowId}`;
-  
+
   div.innerHTML = `
-    <div style="display:flex; gap:8px; margin-bottom:10px;">
-      <select class="type-sel" onchange="handleTypeChange(this, '${rowId}')" required>
-        <option value="">Type</option>
-        <option>Cash</option><option>Upi</option><option>Debit</option><option>Credit</option><option>Rewards</option>
-      </select>
-      <select class="acc-sel" id="acc-${rowId}" required>
-  <option value="">Account</option>
-</select>
-      <input type="number" class="amt-input" placeholder="Amt"
-oninput="calcSplitTotals(); if(this.closest('#sourceContainer')) autoSyncDestination();"
-required>
-      <button type="button"
-class="delete-btn"
-onclick="removeMode(this)">
-✕
-</button>
+    <div class="swipe-wrapper">
+      <div class="mode-row-content">
+        <select class="type-sel" onchange="handleTypeChange(this, '${rowId}')" required>
+          <option value="">Type</option>
+          <option>Cash</option>
+          <option>Upi</option>
+          <option>Debit</option>
+          <option>Credit</option>
+          <option>Rewards</option>
+        </select>
+
+        <select class="acc-sel" id="acc-${rowId}" required>
+          <option value="">Account</option>
+        </select>
+
+        <input type="number"
+          class="amt-input"
+          placeholder="Amt"
+          oninput="calcSplitTotals(); if(this.closest('#sourceContainer')) autoSyncDestination();"
+          required>
+      </div>
     </div>
-  `; // Added closing div here
-  container.appendChild(div);  
-  updateDeleteButtons(container);
+  `;
+
+  container.appendChild(div);
+  enableSwipeToDelete(div.querySelector('.swipe-wrapper'));
 }
-function updateDeleteButtons(container) {
-  const rows = container.querySelectorAll('.mode-row');
 
-  rows.forEach((row, index) => {
-    const delBtn = row.querySelector('.delete-btn');
-
-    if (index === 0) {
-      row.classList.add("full-width");
-      if (delBtn) delBtn.style.display = "none";
-    } else {
-      row.classList.remove("full-width");
-      if (delBtn) delBtn.style.display = "inline-flex";
-    }
-  });
-}
-function removeMode(btn) {
-  const row = btn.closest('.mode-row');
-  const container = row.parentElement;
-
-  row.remove();
-
-  updateDeleteButtons(container);
-  calcSplitTotals();
-  autoSyncDestination();
-  checkCashVisibility();
-}
 
 function handleTypeChange(select, rowId) {
   const type = select.value;
@@ -571,21 +538,7 @@ function calcCash() {
 }
 
 // --- Modified calcSplitTotals: Validation logic updated ---
-function calcSplitTotals() {
-  let out = 0, inp = 0;
-  document.querySelectorAll('#sourceContainer .amt-input').forEach(i => out += Number(i.value || 0));
-  document.querySelectorAll('#destContainer .amt-input').forEach(i => inp += Number(i.value || 0));
-  
-  getEl('totalOut').textContent = `₹${out.toFixed(2)}`;
-  getEl('totalIn').textContent = `₹${inp.toFixed(2)}`;
-  
-  const diff = Math.abs(out - inp);
-  const diffEl = getEl('balanceDiff');
-  diffEl.textContent = `Difference: ₹${(out - inp).toFixed(2)}`;
-  
-  // Visual feedback for balanced vs unbalanced
-  diffEl.style.color = diff < 0.01 ? 'var(--secondary)' : 'var(--danger)';
-}
+
 function autoSyncDestination() {
   let totalSource = 0;
 
@@ -615,11 +568,6 @@ function autoSyncDestination() {
   calcSplitTotals();
 }
 // Global listener for denominations to trigger calculation
-document.addEventListener('input', (e) => {
-  if (e.target.dataset.d) {
-    calcCash();
-  }
-});
 
 document.addEventListener('input', (e) => {
   if (e.target.dataset.d) {
@@ -649,22 +597,6 @@ function calcSplitTotals() {
 // Initial Rows
 addMode('source');
 addMode('dest');
-
-function buildAccounts(type, select, block, otherInput){
-  select.innerHTML = "<option value=''>Select Account</option>";
-  const isCash = type === "Cash" || !type;
-  block.classList.toggle("hidden", isCash);
-  select.required = !isCash;
-  otherInput.classList.add("hidden");
-  if(!isCash) {
-    let list = (type === "Credit") ? creditCards : (type === "Rewards" ? rewardPlatforms : bankAccounts);
-    list.forEach(v => select.add(new Option(v, v)));
-    select.add(new Option("Others", "Others"));
-  }
-}
-
-
-
 selfForm.addEventListener('input', (e) => {
   if (selfForm.classList.contains('was-validated')) {
     if (e.target.checkValidity()) {
@@ -765,10 +697,48 @@ selfForm.onsubmit = async e => {
     return;
   }
 
-  if (batchToggle.checked || !navigator.onLine) {
-    saveBatchToDB(outTotal, inTotal);
-    return;
+  // Save batch locally for Repeat BEFORE any mode decision
+const tempRows = [];
+
+// Capture Sources
+document.querySelectorAll('#sourceContainer .mode-row').forEach(row => {
+  const val = parseFloat(row.querySelector('.amt-input').value || 0);
+  if (val > 0) {
+    tempRows.push({
+      date: date.value,
+      narration: narration.value + " (From)",
+      type: row.querySelector('.type-sel').value,
+      account: (row.querySelector('.acc-sel').value === "Others")
+        ? row.querySelector('.other-acc-input').value
+        : (row.querySelector('.acc-sel').value || "Cash"),
+      amount: val
+    });
   }
+});
+
+// Capture Destinations
+document.querySelectorAll('#destContainer .mode-row').forEach(row => {
+  const val = parseFloat(row.querySelector('.amt-input').value || 0);
+  if (val > 0) {
+    tempRows.push({
+      date: date.value,
+      narration: narration.value + " (To)",
+      type: row.querySelector('.type-sel').value,
+      account: (row.querySelector('.acc-sel').value === "Others")
+        ? row.querySelector('.other-acc-input').value
+        : (row.querySelector('.acc-sel').value || "Cash"),
+      amount: val
+    });
+  }
+});
+
+// Save for Repeat ALWAYS
+localStorage.setItem("lastTransferBatch", JSON.stringify(tempRows));
+
+if (batchToggle.checked || !navigator.onLine) {
+  saveBatchToDB(outTotal, inTotal);
+  return;
+}
 
   const today = new Date();
   const dateStr = today.getFullYear().toString() + (today.getMonth() + 1).toString().padStart(2, '0') + today.getDate().toString().padStart(2, '0');
@@ -878,7 +848,6 @@ function saveBatchToDB(outTotal, inTotal) {
   rowsToSave.forEach(row => store.add(row));
 
   tx.oncomplete = () => {
-    alert(`Saved ${rowsToSave.length} entries to queue (Batch Mode).`);
     resetForm();
     updatePendingCount();
   };
@@ -992,7 +961,7 @@ function getCashDenoms() {
   return d;
 }
 
-function saveToDB() { if(db) { db.transaction("transferQueue", "readwrite").objectStore("transferQueue").add(currentPayload); resetForm(); updatePendingCount(); } }
+
 
 async function manualSync() {
   if (!navigator.onLine) return alert("No Internet");
@@ -1124,15 +1093,61 @@ batchToggle.onchange = () => {
     updatePendingCount(); // Force the footer to show/refresh when batch is turned on
   }
 };
+function enableSwipeToDelete(wrapper) {
+  if (!wrapper) return;
 
+  let startX = 0;
+  let currentX = 0;
+  const content = wrapper.querySelector('.mode-row-content');
+  const row = wrapper.closest('.mode-row');
+  const container = row.parentElement;
+
+  wrapper.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    content.style.transition = "none";
+  });
+
+  wrapper.addEventListener('touchmove', e => {
+    currentX = e.touches[0].clientX - startX;
+
+    // 👈 Move LEFT only
+    if (currentX < 0) {
+      content.style.transform = `translateX(${currentX}px)`;
+    }
+  });
+
+  wrapper.addEventListener('touchend', () => {
+    const rows = container.querySelectorAll('.mode-row');
+    const isFirstRow = rows[0] === row;
+
+    if (currentX < -80 && !isFirstRow) {
+
+      content.style.transition = "transform 0.2s ease, opacity 0.2s ease";
+      content.style.transform = "translateX(-100%)";
+      content.style.opacity = "0";
+
+      setTimeout(() => {
+        row.remove();
+        calcSplitTotals();
+        autoSyncDestination();
+        checkCashVisibility();
+      }, 200);
+
+    } else {
+      content.style.transition = "transform 0.2s ease";
+      content.style.transform = "translateX(0)";
+    }
+
+    currentX = 0;
+  });
+}
 function resetForm() {
   const bState = batchToggle.checked; 
   selfForm.reset(); 
   selfForm.classList.remove("was-validated");
   
   // Hide old blocks if they still exist in logic
-  if(getEl("fromAccBlock")) getEl("fromAccBlock").classList.add("hidden"); 
-  if(getEl("toAccBlock")) getEl("toAccBlock").classList.add("hidden");
+
   
   cashBox.classList.add("hidden"); 
   date.value = new Date().toISOString().split("T")[0];
@@ -1145,6 +1160,7 @@ function resetForm() {
   getEl('totalOut').textContent = "₹0.00";
   getEl('totalIn').textContent = "₹0.00";
   getEl('balanceDiff').textContent = "Difference: ₹0.00";
+  localStorage.setItem("selfTransferTheme", document.body.classList.contains("dark") ? "dark" : "light");
 }
 
 
@@ -1156,11 +1172,7 @@ getEl("btnRepeat").onclick = () => {
     alert("No previous transfer found to repeat.");
   }
 };
-batchToggle.onchange = () => {
-  if (batchToggle.checked) {
-    updatePendingCount(); // Force the footer to show/refresh when batch is turned on
-  }
-};
+
 getEl("btnConfirmFinal").onclick = executeSubmit; getEl("btnConfirmCancel").onclick = () => confirmModal.classList.add("hidden");
 btnViewQueue.onclick = () => queueModal.classList.remove("hidden"); btnSyncAll.onclick = manualSync; btnStopSync.onclick = () => { syncAborted = true; };
 
