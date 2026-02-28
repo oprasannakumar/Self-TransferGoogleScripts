@@ -114,6 +114,7 @@
     input:checked + .slider:before { transform: translateX(18px); }
 
     h3 { margin: 18px 0 8px; font-size: 14px; color: #22c55e; text-transform: uppercase; letter-spacing: 0.05em; }
+    h2 { margin: 18px 0 8px; font-size: 14px; color: #22c55e; text-transform: uppercase; letter-spacing: 0.05em; }
     label { font-size: 13px; font-weight: 600; margin-top: 14px; display: block; color: var(--text-label); }
 
     input, select, button {
@@ -146,8 +147,10 @@
     #submitBtn, .btn-confirm { background: var(--primary); color: #fff; border: none; }
     #btnRepeat, .btn-cancel { background: var(--bg-input); color: var(--text-main); border: 1.5px solid var(--border-color); }
     #btnStopSync { border: 1.5px solid #ef4444; background-color: white; color: #ef4444; }
-
-    hr { border: none; border-top: 1px dashed var(--border-color); margin: 20px 0; }
+label + input {
+  margin-bottom: 6px;
+}
+    hr { border: none; border-top: 1px dashed var(--border-color); margin: 12px 0; }
     .hidden { display: none !important; }
 
     #cashBox { margin-top: 14px; background: var(--bg-body); padding: 14px; border-radius: 14px; border: 1px solid var(--border-color); transition: all 0.3s ease; }
@@ -184,6 +187,13 @@
       border-bottom: 1px solid var(--border-color); padding: 15px 20px; background: var(--bg-card);
     }
     .close-modal { font-size: 28px; font-weight: bold; cursor: pointer; color: var(--text-label); line-height: 1; padding: 5px; }
+    .transfer-box {
+  background: var(--bg-input);
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 18px;
+}
     /* Add this to your <style> section */
 .balance-box {
   background: var(--bg-input);
@@ -200,12 +210,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 18px 0 8px;
+  margin: 0px 0 6px;
 }
 form {
   overflow-x: hidden;
 }
 .section-header h3 {
+  margin: 12px;
+}
+.section-header h2 {
   margin: 0;
 }
 .swipe-wrapper {
@@ -296,8 +309,12 @@ form {
   </button>
 </div>
 <div id="destContainer"></div>
+<hr>
 
 <div id="balanceSummary" class="balance-box">
+  <div class="section-header">
+  <h2>Balance Summary</h2>
+  </div>
   <div>Total Out: <span id="totalOut">₹0.00</span></div>
   <div>Total In: <span id="totalIn">₹0.00</span></div>
   <div id="balanceDiff" style="font-weight:bold;">Difference: ₹0.00</div>
