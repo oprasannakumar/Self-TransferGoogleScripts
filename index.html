@@ -471,10 +471,12 @@ function addMode(side) {
         </select>
 
         <input type="number"
-          class="amt-input"
-          placeholder="Amt"
-          oninput="calcSplitTotals(); if(this.closest('#sourceContainer')) autoSyncDestination();"
-          required>
+  class="amt-input"
+  step="0.01"
+  inputmode="decimal"
+  placeholder="Amt"
+  oninput="calcSplitTotals(); if(this.closest('#sourceContainer')) autoSyncDestination();"
+  required>
       </div>
     </div>
   `;
