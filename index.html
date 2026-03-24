@@ -129,6 +129,7 @@
       flex-direction: column;
       gap: 8px;
       margin-bottom: 12px;
+      cursor: grab;
     }
 
     .other-acc-input {
@@ -136,7 +137,9 @@
       width: 100%;
       box-sizing: border-box;
     }
-
+    .mode-row-content:active {
+  cursor: grabbing;
+}
     .mode-row-content {
       display: flex;
       gap: 8px;
@@ -150,7 +153,7 @@
       cursor: grab;
       user-select: none;
     }
-    swipe-wrapper {
+    .swipe-wrapper {
   touch-action: pan-y;
 }
     input:focus, select:focus { 
@@ -865,6 +868,45 @@ if (currentX < -threshold && !isFirstRow){
 
   wrapper.addEventListener('touchend', handleEnd);
   wrapper.addEventListener('touchcancel', handleEnd);
+  // ===== DESKTOP MOUSE SUPPORT =====
+let isMouseDown = false;
+
+wrapper.addEventListener('mousedown', (e) => {
+  if (e.target.closest('select, input, button')) return;
+
+  isMouseDown = true;
+  startX = e.clientX;
+  startY = e.clientY;
+  isDragging = true;
+  isHorizontal = null;
+  content.style.transition = 'none';
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isMouseDown || !isDragging) return;
+
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+
+  if (isHorizontal === null) {
+    if (Math.abs(dx) > 10) {
+      isHorizontal = true;
+    } else if (Math.abs(dy) > 10) {
+      isHorizontal = false;
+    }
+  }
+
+  if (isHorizontal === true && dx < 0) {
+    currentX = dx;
+    content.style.transform = `translateX(${dx}px)`;
+  }
+});
+
+window.addEventListener('mouseup', () => {
+  if (!isMouseDown) return;
+  isMouseDown = false;
+  handleEnd();
+});
 }
 
 function checkCashVisibility() {
