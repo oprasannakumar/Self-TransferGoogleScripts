@@ -786,120 +786,73 @@ function resetForm() {
 
 // Enhanced swipe-to-delete for both touch and mouse
 function enableSwipeToDelete(wrapper) {
-  if (!wrapper) {
-    console.warn('Swipe wrapper not found');
-    return;
-  }
+  if (!wrapper) return;
 
-  // Prevent browser from handling horizontal swipes
-  wrapper.style.touchAction = 'pan-y';
-
-  let startX = 0,
-      currentX = 0,
-      isDragging = false;
-
+  let startX = 0, currentX = 0, isDragging = false;
   const content = wrapper.querySelector('.mode-row-content');
-  if (!content) {
-    console.warn('No .mode-row-content inside wrapper');
-    return;
-  }
-
   const row = wrapper.closest('.mode-row');
   const container = row.parentElement;
 
-  // --- Mouse events (for desktop debugging) ---
-  function onMouseDown(e) {
+  // 1. Unified Start (Mouse & Touch)
+  const start = (e) => {
     if (e.target.closest('select, input, button')) return;
     isDragging = true;
-    startX = e.clientX;
+    startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
     content.style.transition = 'none';
-    e.preventDefault();
-  }
+  };
 
-  function onMouseMove(e) {
+  // 2. Unified Move
+  const move = (e) => {
     if (!isDragging) return;
-    const deltaX = e.clientX - startX;
-    // Only allow leftward swipe (negative delta)
-    if (deltaX < 0) {
+    
+    const x = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+    const deltaX = x - startX;
+
+    // Only allow left swipes and ignore small accidental jitters (< 10px)
+    if (deltaX < -10) {
+      // Prevent page scroll only once we are sure it's a horizontal swipe
+      if (e.cancelable) e.preventDefault(); 
       currentX = deltaX;
       content.style.transform = `translateX(${currentX}px)`;
     }
-    e.preventDefault();
-  }
+  };
 
-  function onMouseUp(e) {
+  // 3. Unified End
+  const end = () => {
     if (!isDragging) return;
     isDragging = false;
-    finalizeSwipe();
-  }
-
-  // --- Touch events (mobile) ---
-  function onTouchStart(e) {
-    // Ignore touches that start on input/select/button
-    if (e.target.closest('select, input, button')) return;
-
-    isDragging = true;
-    startX = e.touches[0].clientX;
-    content.style.transition = 'none';
-    e.preventDefault(); // prevents page scroll during swipe
-  }
-
-  function onTouchMove(e) {
-    if (!isDragging) return;
-    const deltaX = e.touches[0].clientX - startX;
-    if (deltaX < 0) {
-      currentX = deltaX;
-      content.style.transform = `translateX(${currentX}px)`;
-    }
-    e.preventDefault(); // prevents browser from panning horizontally
-  }
-
-  function onTouchEnd(e) {
-    if (!isDragging) return;
-    isDragging = false;
-    finalizeSwipe();
-  }
-
-  // Common finalization after swipe ends
-  function finalizeSwipe() {
+    
     const rows = container.querySelectorAll('.mode-row');
     const isFirstRow = rows[0] === row;
 
-    // Swipe threshold: 80px to left
+    // Threshold check (80px) - Prevent deleting the very first row
     if (currentX < -80 && !isFirstRow) {
-      // Animate out and delete
-      content.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
-      content.style.transform = 'translateX(-100%)';
+      content.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+      content.style.transform = 'translateX(-120%)';
       content.style.opacity = '0';
 
       setTimeout(() => {
         row.remove();
-        // Update UI after removal
         if (typeof calcSplitTotals === 'function') calcSplitTotals();
         if (typeof autoSyncDestination === 'function') autoSyncDestination();
-        if (typeof checkCashVisibility === 'function') checkCashVisibility();
-      }, 200);
+      }, 300);
     } else {
-      // Snap back
-      content.style.transition = 'transform 0.2s ease';
+      // Snap back if threshold not met
+      content.style.transition = 'transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
       content.style.transform = 'translateX(0)';
     }
-
-    // Reset state
     currentX = 0;
-    content.style.transition = '';
-  }
+  };
 
-  // --- Attach listeners ---
-  // Mouse
-  wrapper.addEventListener('mousedown', onMouseDown);
-  window.addEventListener('mousemove', onMouseMove);
-  window.addEventListener('mouseup', onMouseUp);
+  // Desktop Mouse Events
+  wrapper.addEventListener('mousedown', start);
+  window.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
 
-  // Touch (mobile)
-  wrapper.addEventListener('touchstart', onTouchStart, { passive: false });
-  wrapper.addEventListener('touchmove', onTouchMove, { passive: false });
-  wrapper.addEventListener('touchend', onTouchEnd);
+  // Mobile Touch Events
+  wrapper.addEventListener('touchstart', start, { passive: true });
+  wrapper.addEventListener('touchmove', move, { passive: false });
+  wrapper.addEventListener('touchend', end);
 }
 function checkCashVisibility() {
   const anyCashSelected = [...document.querySelectorAll('.type-sel')].some(sel => sel.value === "Cash");
