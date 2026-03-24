@@ -788,6 +788,9 @@ function resetForm() {
 function enableSwipeToDelete(wrapper) {
   if (!wrapper) return;
 
+  // Prevent the browser from taking over horizontal swipes
+  wrapper.style.touchAction = 'pan-y';
+
   let startX = 0,
       currentX = 0,
       isDragging = false;
@@ -797,7 +800,7 @@ function enableSwipeToDelete(wrapper) {
   const container = row.parentElement;
 
   function onStart(e) {
-    // Ignore if clicking on interactive elements (select, input, button)
+    // Ignore touches that start on interactive elements
     if (e.target.closest('select, input, button')) return;
 
     isDragging = true;
@@ -824,14 +827,13 @@ function enableSwipeToDelete(wrapper) {
     const isFirstRow = rows[0] === row;
 
     if (currentX < -80 && !isFirstRow) {
-      // Delete with animation
+      // Delete row with animation
       content.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
       content.style.transform = 'translateX(-100%)';
       content.style.opacity = '0';
 
       setTimeout(() => {
         row.remove();
-        // Call any required updates after deletion
         if (typeof calcSplitTotals === 'function') calcSplitTotals();
         if (typeof autoSyncDestination === 'function') autoSyncDestination();
         if (typeof checkCashVisibility === 'function') checkCashVisibility();
@@ -846,13 +848,15 @@ function enableSwipeToDelete(wrapper) {
     content.style.transition = '';
   }
 
-  // Attach listeners for both mouse and touch
+  // Attach mouse events
   wrapper.addEventListener('mousedown', onStart);
   window.addEventListener('mousemove', onMove);
   window.addEventListener('mouseup', onEnd);
-  wrapper.addEventListener('touchstart', onStart);
-  window.addEventListener('touchmove', onMove);
-  window.addEventListener('touchend', onEnd);
+
+  // Attach touch events directly to the wrapper for better mobile control
+  wrapper.addEventListener('touchstart', onStart, { passive: false });
+  wrapper.addEventListener('touchmove', onMove, { passive: false });
+  wrapper.addEventListener('touchend', onEnd);
 }
 function checkCashVisibility() {
   const anyCashSelected = [...document.querySelectorAll('.type-sel')].some(sel => sel.value === "Cash");
@@ -874,33 +878,93 @@ function renderQueueTable(items) {
 
 window.deleteItem = id => { if(confirm("Delete?")) db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = updatePendingCount; };
 window.editItem = id => { db.transaction("transferQueue","readonly").objectStore("transferQueue").get(id).onsuccess = e => { loadToForm(e.target.result); db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = () => { queueModal.classList.add("hidden"); updatePendingCount(); }; }; };
-window.loadToForm = function(items) {
+window.loadToForm = function (items) {
   if (!Array.isArray(items)) items = [items];
-  sourceContainer.innerHTML = ""; destContainer.innerHTML = "";
+  sourceContainer.innerHTML = "";
+  destContainer.innerHTML = "";
+
   const first = items[0];
   date.value = first.date;
   narration.value = first.narration.replace(/ \(From\)| \(To\)/g, "");
+
   items.forEach(item => {
     const isFrom = item.narration.includes("(From)");
     const side = isFrom ? 'source' : 'dest';
-    const container = getEl(side === 'source' ? 'sourceContainer' : 'destContainer');
+    const container = side === 'source' ? sourceContainer : destContainer;
+
+    // Create row structure
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'mode-row';
     const rowId = Date.now() + Math.random();
-    const div = document.createElement('div');
-    div.className = 'mode-row';
-    div.id = `row-${rowId}`;
-    div.innerHTML = `<div class="swipe-wrapper"><div class="mode-row-content"><select class="type-sel" onchange="handleTypeChange(this, '${rowId}')" required><option value="">Type</option><option>Cash</option><option>Upi</option><option>Debit</option><option>Credit</option><option>Rewards</option></select><select class="acc-sel hidden" id="acc-${rowId}"></select><input type="number" class="amt-input" value="${item.amount}" placeholder="Amt" oninput="calcSplitTotals()" required></div></div>`;
-    container.appendChild(div);
-    const typeSel = div.querySelector('.type-sel');
+    rowDiv.id = `row-${rowId}`;
+
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.className = 'swipe-wrapper';
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'mode-row-content';
+
+    // Create select for type
+    const typeSel = document.createElement('select');
+    typeSel.className = 'type-sel';
+    typeSel.setAttribute('onchange', `handleTypeChange(this, '${rowId}')`);
+    typeSel.required = true;
+    const types = ['', 'Cash', 'Upi', 'Debit', 'Credit', 'Rewards'];
+    types.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t;
+      opt.textContent = t || 'Type';
+      typeSel.appendChild(opt);
+    });
     typeSel.value = item.type;
+
+    // Create select for account
+    const accSel = document.createElement('select');
+    accSel.className = 'acc-sel hidden';
+    accSel.id = `acc-${rowId}`;
+    accSel.required = false;
+
+    // Create amount input
+    const amtInput = document.createElement('input');
+    amtInput.type = 'number';
+    amtInput.className = 'amt-input';
+    amtInput.step = '0.01';
+    amtInput.placeholder = 'Amt';
+    amtInput.value = item.amount;
+    amtInput.setAttribute('oninput', 'calcSplitTotals()');
+    amtInput.required = true;
+
+    contentDiv.appendChild(typeSel);
+    contentDiv.appendChild(accSel);
+    contentDiv.appendChild(amtInput);
+    wrapperDiv.appendChild(contentDiv);
+    rowDiv.appendChild(wrapperDiv);
+    container.appendChild(rowDiv);
+
+    // Now populate the account dropdown and handle "Others"
     handleTypeChange(typeSel, rowId);
-    const accSel = div.querySelector('.acc-sel');
+    const accSelElem = rowDiv.querySelector('.acc-sel');
     if (item.type !== 'Cash') {
       const masterList = [...bankAccounts, ...creditCards, ...rewardPlatforms];
-      if (masterList.includes(item.account)) accSel.value = item.account;
-      else { accSel.value = "Others"; const other = div.querySelector('.other-acc-input'); if(other) { other.value = item.account; other.classList.remove('hidden'); } }
+      if (masterList.includes(item.account)) {
+        accSelElem.value = item.account;
+      } else {
+        accSelElem.value = "Others";
+        const otherInput = rowDiv.querySelector('.other-acc-input');
+        if (otherInput) {
+          otherInput.value = item.account;
+          otherInput.classList.remove('hidden');
+        }
+      }
     }
+
+    // **Enable swipe for this newly created row**
+    const wrapper = rowDiv.querySelector('.swipe-wrapper');
+    enableSwipeToDelete(wrapper);
   });
-  calcSplitTotals(); checkCashVisibility();
+
+  calcSplitTotals();
+  checkCashVisibility();
 };
 
 getEl("btnRepeat").onclick = () => { const last = JSON.parse(localStorage.getItem("lastTransferBatch")); if(last) loadToForm(last); else alert("No previous transfer found."); };
