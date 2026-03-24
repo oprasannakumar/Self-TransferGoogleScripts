@@ -150,7 +150,9 @@
       cursor: grab;
       user-select: none;
     }
-
+    .mode-row-content {
+     touch-action: pan-y;
+    }
     input:focus, select:focus { 
       outline: none; 
       border-color:#2563eb; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
@@ -795,27 +797,34 @@ function enableSwipeToDelete(wrapper) {
 
   // 1. Unified Start (Mouse & Touch)
   const start = (e) => {
-    if (e.target.closest('select, input, button')) return;
-    isDragging = true;
-    startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-    content.style.transition = 'none';
-  };
+  if (e.target.closest('select, input, button')) return;
+
+  isDragging = true;
+  startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+  currentX = 0; // 🔥 ADD THIS LINE
+
+  content.style.transition = 'none';
+ };
 
   // 2. Unified Move
   const move = (e) => {
-    if (!isDragging) return;
-    
-    const x = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-    const deltaX = x - startX;
+  if (!isDragging) return;
 
-    // Only allow left swipes and ignore small accidental jitters (< 10px)
-    if (deltaX < -10) {
-      // Prevent page scroll only once we are sure it's a horizontal swipe
-      if (e.cancelable) e.preventDefault(); 
+  const x = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+  const y = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+
+  const deltaX = x - startX;
+
+  // Only trigger swipe if strong horizontal movement
+  if (Math.abs(deltaX) > 15) {
+    if (e.cancelable) e.preventDefault();
+
+    if (deltaX < 0) {
       currentX = deltaX;
       content.style.transform = `translateX(${currentX}px)`;
     }
-  };
+  }
+};
 
   // 3. Unified End
   const end = () => {
@@ -850,7 +859,7 @@ function enableSwipeToDelete(wrapper) {
   window.addEventListener('mouseup', end);
 
   // Mobile Touch Events
-  wrapper.addEventListener('touchstart', start, { passive: true });
+  wrapper.addEventListener('touchstart', start, { passive: false });
   wrapper.addEventListener('touchmove', move, { passive: false });
   wrapper.addEventListener('touchend', end);
 }
