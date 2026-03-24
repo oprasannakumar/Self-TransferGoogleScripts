@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Self Transfer | Smart Sync Pro</title>
-   <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffffff">
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -122,17 +122,35 @@
       border-radius: 10px; border: 1px solid var(--border-color); font-size: 14px; box-sizing: border-box;
       background: var(--bg-input); color: var(--text-main); transition: all 0.3s ease;
     }
-.mode-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
-  align-items: center;
-}
 
+    /* FIX: Others input appears on new line and matches width of main row */
+    .mode-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
 
-.mode-row:not(.full-width) .type-sel { flex: 1.2; }
-.mode-row:not(.full-width) .acc-sel { flex: 1.8; }
-.mode-row:not(.full-width) .amt-input { flex: 0.7; }
+    .other-acc-input {
+      margin-top: 4px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .mode-row-content {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 0 8px;
+      height: var(--btn-h);
+      background: var(--bg-card);
+      transition: transform 0.25s ease;
+      position: relative;
+      z-index: 2;
+      cursor: grab;
+      user-select: none;
+    }
+
     input:focus, select:focus { 
       outline: none; 
       border-color:#2563eb; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
@@ -147,9 +165,9 @@
     #submitBtn, .btn-confirm { background: var(--primary); color: #fff; border: none; }
     #btnRepeat, .btn-cancel { background: var(--bg-input); color: var(--text-main); border: 1.5px solid var(--border-color); }
     #btnStopSync { border: 1.5px solid #ef4444; background-color: white; color: #ef4444; }
-label + input {
-  margin-bottom: 6px;
-}
+    label + input {
+      margin-bottom: 6px;
+    }
     hr { border: none; border-top: 1px dashed var(--border-color); margin: 12px 0; }
     .hidden { display: none !important; }
 
@@ -188,76 +206,59 @@ label + input {
     }
     .close-modal { font-size: 28px; font-weight: bold; cursor: pointer; color: var(--text-label); line-height: 1; padding: 5px; }
     .transfer-box {
-  background: var(--bg-input);
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border-color);
-  margin-bottom: 18px;
-}
-    /* Add this to your <style> section */
-.balance-box {
-  background: var(--bg-input);
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border-color);
-  margin-top: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 13px;
-}
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 0px 0 6px;
-}
-form {
-  overflow-x: hidden;
-}
-.section-header h3 {
-  margin: 12px;
-}
-.section-header h2 {
-  margin: 0;
-}
-.swipe-wrapper {
-  position: relative;
-  margin-bottom: 10px;
-}
-.mode-row-content .type-sel { flex: 1.2; }
-.mode-row-content .acc-sel { flex: 1.8; }
-.mode-row-content .amt-input { flex: 1; }
-.mode-row-content {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 0 8px;
-  height: var(--btn-h); /* 44px */
-  background: var(--bg-card);
-  transition: transform 0.25s ease;
-  position: relative;
-  z-index: 2;
-}
-
-.btn-add-mode {
-  width: auto;
-  height: 28px;
-  font-size: 11px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--secondary);
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-
+      background: var(--bg-input);
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 18px;
+    }
+    .balance-box {
+      background: var(--bg-input);
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 13px;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 0px 0 6px;
+    }
+    form {
+      overflow-x: hidden;
+    }
+    .section-header h3 {
+      margin: 12px;
+    }
+    .section-header h2 {
+      margin: 0;
+    }
+    .swipe-wrapper {
+      position: relative;
+      margin-bottom: 0px;
+    }
+    .btn-add-mode {
+      width: auto;
+      height: 28px;
+      font-size: 11px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--secondary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      padding: 0 12px;
+    }
+    .btn-add-mode:hover { opacity: 0.9; }
   </style>
 </head>
-
 <body>
 
 <form id="form" novalidate>
@@ -361,19 +362,19 @@ form {
       <span class="close-modal" onclick="getEl('queueModal').classList.add('hidden')">&times;</span>
     </div>
     <div class="table-container">
-      <table>
+       <table>
         <thead>
-          <tr>
+           <tr>
             <th style="width:90px">Date</th>
             <th>Narration</th>
             <th style="width:140px">From</th>
             <th style="width:140px">To</th>
             <th style="width:100px">Amount</th>
             <th style="width:100px">Action</th>
-          </tr>
+           </tr>
         </thead>
         <tbody id="queueTableBody"></tbody>
-      </table>
+       </table>
     </div>
   </div>
 </div>
@@ -381,13 +382,12 @@ form {
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyW755SytjdG7e_qqlgkhHfFmdUvqr5SQv66B6yHF41Z0qeeuWuH3XdCzeEsMtbZwrKOA/exec";
 let isSubmitting = false, syncAborted = false, currentPayload = null, db;
-let currentBatchRef = ""; // Global variable to hold the reference
+let currentBatchRef = "";
 
 const bankAccounts=["FI","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
 const creditCards=["Axis Flipkart","Axis MyZone","Axis Neo","HDFC PhonePe","HDFC Tata Neu","HDFC Millennia","HSBC","IDFC First Millenia","ICICI Amazon","ICICI Coral","ICICI Expressions","Indusind Plat Aura EDGE","Indusind Legend","Yes Finbooster","Kotak League","Kotak Image","SBI BPCL","Standard Chartered"];
 const rewardPlatforms=["Amazon", "Flipkart", "Supermoney", "Payzapp", "MobiKwik", "Tata Neu"];
 const denoms=[500,200,100,50,20,10,5,2,1];
-// Add this right after your 'denoms' array initialization
 
 const getEl = id => document.getElementById(id);
 const formatDisplayDate = dStr => {
@@ -445,15 +445,13 @@ async function updatePendingCount(){
     renderQueueTable(items);
   };
 }
-// Add these to your existing script
+
 function addMode(side) {
   const container = getEl(side === 'source' ? 'sourceContainer' : 'destContainer');
   const rowId = Date.now() + Math.random();
-
   const div = document.createElement('div');
   div.className = 'mode-row';
   div.id = `row-${rowId}`;
-
   div.innerHTML = `
     <div class="swipe-wrapper">
       <div class="mode-row-content">
@@ -465,26 +463,22 @@ function addMode(side) {
           <option>Credit</option>
           <option>Rewards</option>
         </select>
-
         <select class="acc-sel" id="acc-${rowId}" required>
           <option value="">Account</option>
         </select>
-
         <input type="number"
-  class="amt-input"
-  step="0.01"
-  inputmode="decimal"
-  placeholder="Amt"
-  oninput="calcSplitTotals(); if(this.closest('#sourceContainer')) autoSyncDestination();"
-  required>
+          class="amt-input"
+          step="0.01"
+          inputmode="decimal"
+          placeholder="Amt"
+          oninput="calcSplitTotals(); if(this.closest('#sourceContainer')) autoSyncDestination();"
+          required>
       </div>
     </div>
   `;
-
   container.appendChild(div);
   enableSwipeToDelete(div.querySelector('.swipe-wrapper'));
 }
-
 
 function handleTypeChange(select, rowId) {
   const type = select.value;
@@ -501,20 +495,21 @@ function handleTypeChange(select, rowId) {
       amtInput.style.backgroundColor = "var(--bg-body)";
       amtInput.style.fontWeight = "600";
       calcCash(); 
+    } else {
+      amtInput.readOnly = false;
+      amtInput.style.backgroundColor = "";
+      amtInput.style.fontWeight = "400";
     }
     accSel.classList.add('hidden');
-    accSel.required = false; // Disable requirement if Cash/Empty
+    accSel.required = false;
   } else {
     amtInput.readOnly = false;
     amtInput.style.backgroundColor = "";
     amtInput.style.fontWeight = "400";
     accSel.classList.remove('hidden');
-    accSel.required = true; // MUST select an account for non-cash types
-  }
-  
-  accSel.innerHTML = "<option value=''>Account</option>";
-  
-  if(type !== 'Cash' && type !== '') {
+    accSel.required = true;
+    
+    accSel.innerHTML = "<option value=''>Account</option>";
     let list = (type === "Credit") ? creditCards : (type === "Rewards" ? rewardPlatforms : bankAccounts);
     list.forEach(v => accSel.add(new Option(v, v)));
     accSel.add(new Option("Others", "Others"));
@@ -523,13 +518,12 @@ function handleTypeChange(select, rowId) {
     otherInput.type = 'text';
     otherInput.className = 'other-acc-input hidden';
     otherInput.placeholder = 'Enter Account Name';
-    otherInput.style.marginTop = '8px';
-    row.appendChild(otherInput);
+    row.appendChild(otherInput);  // appears on new line due to flex column
 
     accSel.onchange = () => {
       const isOther = accSel.value === 'Others';
       otherInput.classList.toggle('hidden', !isOther);
-      otherInput.required = isOther; // Required ONLY if "Others" is selected
+      otherInput.required = isOther;
       if (!isOther) otherInput.value = ""; 
     };
   }
@@ -541,39 +535,27 @@ function calcCash() {
   document.querySelectorAll("[data-d]").forEach(i => {
     total += Number(i.dataset.d) * Number(i.value || 0);
   });
-  
   document.querySelectorAll('.mode-row').forEach(row => {
     if (row.querySelector('.type-sel').value === "Cash") {
       row.querySelector('.amt-input').value = total > 0 ? total.toFixed(2) : "";
     }
   });
-  
-  // Clear error styles while typing
   const cb = getEl("cashBox");
   cb.style.border = "";
   cb.classList.remove("invalid-cash");
-  
   calcSplitTotals();
 }
 
-// --- Modified calcSplitTotals: Validation logic updated ---
-
 function autoSyncDestination() {
   let totalSource = 0;
-
   document.querySelectorAll('#sourceContainer .amt-input').forEach(i => {
     totalSource += Number(i.value || 0);
   });
-
   const destRows = document.querySelectorAll('#destContainer .mode-row');
   if (destRows.length === 0) return;
-
   if (destRows.length === 1) {
-    destRows[0].querySelector('.amt-input').value =
-      totalSource !== 0 ? totalSource : "";
-  }
-
-  if (destRows.length > 1) {
+    destRows[0].querySelector('.amt-input').value = totalSource !== 0 ? totalSource : "";
+  } else {
     destRows.forEach((row, index) => {
       const amtField = row.querySelector('.amt-input');
       if (index === 0) {
@@ -583,18 +565,13 @@ function autoSyncDestination() {
       }
     });
   }
-
   calcSplitTotals();
 }
-// Global listener for denominations to trigger calculation
 
 document.addEventListener('input', (e) => {
   if (e.target.dataset.d) {
     calcCash();
-    // Re-run validation if the form has already been submitted once
-    if (selfForm.classList.contains('was-validated')) {
-      validateCash();
-    }
+    if (selfForm.classList.contains('was-validated')) validateCash();
   }
 });
 
@@ -602,26 +579,22 @@ function calcSplitTotals() {
   let out = 0, inp = 0;
   document.querySelectorAll('#sourceContainer .amt-input').forEach(i => out += Number(i.value || 0));
   document.querySelectorAll('#destContainer .amt-input').forEach(i => inp += Number(i.value || 0));
-  
   getEl('totalOut').textContent = `₹${out.toFixed(2)}`;
   getEl('totalIn').textContent = `₹${inp.toFixed(2)}`;
   const diff = out - inp;
   const diffEl = getEl('balanceDiff');
   diffEl.textContent = `Difference: ₹${diff.toFixed(2)}`;
   diffEl.style.color = Math.abs(diff) < 0.01 ? 'var(--secondary)' : 'var(--danger)';
-  
-  // Sync the global hidden/disabled amount field for legacy validation if needed
 }
 
-// Initial Rows
 addMode('source');
 addMode('dest');
+
 selfForm.addEventListener('input', (e) => {
   if (selfForm.classList.contains('was-validated')) {
     if (e.target.checkValidity()) {
       e.target.style.borderColor = "";
       e.target.style.backgroundColor = "";
-      // If we are typing in denominations, also check if we can remove box highlight
       if(e.target.dataset.d) calcCash();
     }
   }
@@ -629,135 +602,77 @@ selfForm.addEventListener('input', (e) => {
 
 selfForm.onsubmit = async e => {
   e.preventDefault();
-  
   selfForm.classList.add("was-validated");
-
   const isFormValid = selfForm.checkValidity();
   const isCashValid = validateCash();
-
   if (!isFormValid || !isCashValid) {
     const firstError = document.querySelector(':invalid, .invalid-cash');
     if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
 
-  let sourceHtml = "";
-  let destHtml = "";
-  let outTotal = 0;
-  let inTotal = 0;
-
-  // Helper to build the FULL 3x3 Grid for confirmation (including 0s)
+  let sourceHtml = "", destHtml = "";
+  let outTotal = 0, inTotal = 0;
   const getDenomMatrix = () => {
     let matrixHtml = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; background: var(--bg-body); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);">`;
-    
     document.querySelectorAll("[data-d]").forEach(i => {
       const count = parseInt(i.value || 0);
-      // Determine if the card should look "active" or "faded"
       const opacity = count > 0 ? "1" : "0.4";
       const border = count > 0 ? "var(--primary)" : "var(--border-color)";
-      
-      matrixHtml += `
-        <div style="font-size: 10px; background: var(--bg-card); border: 1px solid ${border}; border-radius: 6px; padding: 4px 2px; text-align: center; opacity: ${opacity}; transition: opacity 0.3s;">
-          <div style="font-weight: bold; color: var(--text-main); font-size: 11px;">₹${i.dataset.d}</div>
-          <div style="color: var(--text-label);">${count}</div>
-        </div>`;
+      matrixHtml += `<div style="font-size: 10px; background: var(--bg-card); border: 1px solid ${border}; border-radius: 6px; padding: 4px 2px; text-align: center; opacity: ${opacity};"><div style="font-weight: bold;">₹${i.dataset.d}</div><div>${count}</div></div>`;
     });
-    
     matrixHtml += `</div>`;
     return matrixHtml;
   };
 
-  // Process Sources
   document.querySelectorAll('#sourceContainer .mode-row').forEach(row => {
     const type = row.querySelector('.type-sel').value;
-    const acc = row.querySelector('.acc-sel').value === "Others" 
-                ? row.querySelector('.other-acc-input').value 
-                : (row.querySelector('.acc-sel').value || "Cash");
+    const accSelVal = row.querySelector('.acc-sel').value;
+    const acc = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
     const val = parseFloat(row.querySelector('.amt-input').value || 0);
-    
     if (val > 0) {
       outTotal += val;
       const cashDetails = (type === "Cash") ? getDenomMatrix() : "";
-      sourceHtml += `
-        <div style="padding: 12px 0; border-bottom: 1px solid var(--border-color);">
-          <div class="confirm-item" style="border:none; padding:0; margin-bottom: 4px;">
-            <span style="color:var(--danger); font-weight:600;">● ${acc} (${type})</span>
-            <span style="font-weight:600;">₹${val.toFixed(2)}</span>
-          </div>
-          ${cashDetails}
-        </div>`;
+      sourceHtml += `<div style="padding: 12px 0; border-bottom: 1px solid var(--border-color);"><div class="confirm-item" style="border:none; padding:0;"><span style="color:var(--danger); font-weight:600;">● ${acc} (${type})</span><span>₹${val.toFixed(2)}</span></div>${cashDetails}</div>`;
     }
   });
-
-  // Process Destinations
   document.querySelectorAll('#destContainer .mode-row').forEach(row => {
     const type = row.querySelector('.type-sel').value;
-    const acc = row.querySelector('.acc-sel').value === "Others" 
-                ? row.querySelector('.other-acc-input').value 
-                : (row.querySelector('.acc-sel').value || "Cash");
+    const accSelVal = row.querySelector('.acc-sel').value;
+    const acc = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
     const val = parseFloat(row.querySelector('.amt-input').value || 0);
-    
     if (val > 0) {
       inTotal += val;
       const cashDetails = (type === "Cash") ? getDenomMatrix() : "";
-      destHtml += `
-        <div style="padding: 12px 0; border-bottom: 1px solid var(--border-color);">
-          <div class="confirm-item" style="border:none; padding:0; margin-bottom: 4px;">
-            <span style="color:var(--secondary); font-weight:600;">● ${acc} (${type})</span>
-            <span style="font-weight:600;">₹${val.toFixed(2)}</span>
-          </div>
-          ${cashDetails}
-        </div>`;
+      destHtml += `<div style="padding: 12px 0; border-bottom: 1px solid var(--border-color);"><div class="confirm-item" style="border:none; padding:0;"><span style="color:var(--secondary); font-weight:600;">● ${acc} (${type})</span><span>₹${val.toFixed(2)}</span></div>${cashDetails}</div>`;
     }
   });
 
-  if (outTotal === 0 && inTotal === 0) {
-    alert("Please enter transaction amounts.");
+  if (outTotal === 0 && inTotal === 0) { alert("Please enter transaction amounts."); return; }
+
+  const tempRows = [];
+  document.querySelectorAll('#sourceContainer .mode-row, #destContainer .mode-row').forEach(row => {
+    const val = parseFloat(row.querySelector('.amt-input').value || 0);
+    if (val > 0) {
+      const isSource = row.closest('#sourceContainer') !== null;
+      const type = row.querySelector('.type-sel').value;
+      const accSelVal = row.querySelector('.acc-sel').value;
+      const account = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
+      tempRows.push({
+        date: date.value,
+        narration: narration.value + (isSource ? " (From)" : " (To)"),
+        type: type,
+        account: account,
+        amount: val
+      });
+    }
+  });
+  localStorage.setItem("lastTransferBatch", JSON.stringify(tempRows));
+
+  if (batchToggle.checked || !navigator.onLine) {
+    saveBatchToDB(outTotal, inTotal);
     return;
   }
-
-  // Save batch locally for Repeat BEFORE any mode decision
-const tempRows = [];
-
-// Capture Sources
-document.querySelectorAll('#sourceContainer .mode-row').forEach(row => {
-  const val = parseFloat(row.querySelector('.amt-input').value || 0);
-  if (val > 0) {
-    tempRows.push({
-      date: date.value,
-      narration: narration.value + " (From)",
-      type: row.querySelector('.type-sel').value,
-      account: (row.querySelector('.acc-sel').value === "Others")
-        ? row.querySelector('.other-acc-input').value
-        : (row.querySelector('.acc-sel').value || "Cash"),
-      amount: val
-    });
-  }
-});
-
-// Capture Destinations
-document.querySelectorAll('#destContainer .mode-row').forEach(row => {
-  const val = parseFloat(row.querySelector('.amt-input').value || 0);
-  if (val > 0) {
-    tempRows.push({
-      date: date.value,
-      narration: narration.value + " (To)",
-      type: row.querySelector('.type-sel').value,
-      account: (row.querySelector('.acc-sel').value === "Others")
-        ? row.querySelector('.other-acc-input').value
-        : (row.querySelector('.acc-sel').value || "Cash"),
-      amount: val
-    });
-  }
-});
-
-// Save for Repeat ALWAYS
-localStorage.setItem("lastTransferBatch", JSON.stringify(tempRows));
-
-if (batchToggle.checked || !navigator.onLine) {
-  saveBatchToDB(outTotal, inTotal);
-  return;
-}
 
   const today = new Date();
   const dateStr = today.getFullYear().toString() + (today.getMonth() + 1).toString().padStart(2, '0') + today.getDate().toString().padStart(2, '0');
@@ -766,442 +681,235 @@ if (batchToggle.checked || !navigator.onLine) {
 
   confirmDetails.innerHTML = `
     <div class="confirm-item"><span>Date</span><span>${formatDisplayDate(date.value)}</span></div>
-    <div class="confirm-item"><span>Ref ID</span><span style="font-family:monospace; font-weight:bold;">${currentBatchRef}</span></div>
-    
-    <div class="confirm-section-title">From (Sources)</div>
-    ${sourceHtml}
-    <div class="confirm-item" style="font-weight:bold; margin-top:10px; font-size:14px;"><span>Total Out</span><span>₹${outTotal.toFixed(2)}</span></div>
-
-    <div class="confirm-section-title" style="margin-top:24px;">To (Destinations)</div>
-    ${destHtml}
-    <div class="confirm-item" style="font-weight:bold; margin-top:10px; font-size:14px;"><span>Total In</span><span>₹${inTotal.toFixed(2)}</span></div>
-    
-    <hr>
-    <div class="confirm-item" style="font-size:16px; font-weight:bold; background: var(--bg-body); padding: 12px; border-radius: 10px;">
-      <span>Balance Diff</span>
-      <span style="color:${Math.abs(outTotal - inTotal) < 0.01 ? 'var(--secondary)' : 'var(--danger)'}">
-        ₹${(outTotal - inTotal).toFixed(2)}
-      </span>
-    </div>
+    <div class="confirm-item"><span>Ref ID</span><span style="font-family:monospace;">${currentBatchRef}</span></div>
+    <div class="confirm-section-title">From (Sources)</div>${sourceHtml}<div class="confirm-item" style="font-weight:bold;"><span>Total Out</span><span>₹${outTotal.toFixed(2)}</span></div>
+    <div class="confirm-section-title">To (Destinations)</div>${destHtml}<div class="confirm-item" style="font-weight:bold;"><span>Total In</span><span>₹${inTotal.toFixed(2)}</span></div>
+    <hr><div class="confirm-item" style="background: var(--bg-body); padding: 12px;"><span>Balance Diff</span><span style="color:${Math.abs(outTotal - inTotal) < 0.01 ? 'var(--secondary)' : 'var(--danger)'}">₹${(outTotal - inTotal).toFixed(2)}</span></div>
   `;
-
   confirmModal.classList.remove("hidden");
 };
 
 function validateCash() {
   const hasCash = [...document.querySelectorAll('.type-sel')].some(s => s.value === 'Cash');
   const cb = getEl("cashBox");
-  
-  // If no cash is selected, it's valid by default
-  if (!hasCash) {
-    cb.classList.remove("invalid-cash");
-    return true;
-  }
-
+  if (!hasCash) { cb.classList.remove("invalid-cash"); return true; }
   let denomTotal = 0;
-  document.querySelectorAll("[data-d]").forEach(i => {
-    denomTotal += Number(i.dataset.d) * Number(i.value || 0);
-  });
-
+  document.querySelectorAll("[data-d]").forEach(i => denomTotal += Number(i.dataset.d) * Number(i.value || 0));
   let expectedCash = 0;
-  document.querySelectorAll('.mode-row').forEach(row => {
-    if(row.querySelector('.type-sel').value === 'Cash') {
-      expectedCash += Number(row.querySelector('.amt-input').value || 0);
-    }
-  });
-
-  // Inline Validation Check: Must have denoms AND must match the total
+  document.querySelectorAll('.mode-row').forEach(row => { if(row.querySelector('.type-sel').value === 'Cash') expectedCash += Number(row.querySelector('.amt-input').value || 0); });
   const isInvalid = (denomTotal <= 0) || (denomTotal.toFixed(2) !== expectedCash.toFixed(2));
-
-  if (isInvalid) {
-    cb.classList.add("invalid-cash");
-    // Standard HTML5 validation prevents submission if we return false
-    return false;
-  } else {
-    cb.classList.remove("invalid-cash");
-    return true;
-  }
+  if (isInvalid) cb.classList.add("invalid-cash");
+  else cb.classList.remove("invalid-cash");
+  return !isInvalid;
 }
 
-function saveBatchToDB(outTotal, inTotal) {
-  if (!db) return alert("Database not ready");
-
+function saveBatchToDB() {
+  if (!db) return alert("DB not ready");
   const ref = "REF-" + new Date().getFullYear() + (new Date().getMonth()+1).toString().padStart(2,'0') + new Date().getDate().toString().padStart(2,'0') + "-" + Math.random().toString(36).substr(2, 4).toUpperCase();
   const rowsToSave = [];
-
-  // Capture Sources
-  document.querySelectorAll('#sourceContainer .mode-row').forEach(row => {
+  document.querySelectorAll('#sourceContainer .mode-row, #destContainer .mode-row').forEach(row => {
     const val = parseFloat(row.querySelector('.amt-input').value);
     if (val > 0) {
+      const isSource = row.closest('#sourceContainer') !== null;
+      const type = row.querySelector('.type-sel').value;
+      const accSelVal = row.querySelector('.acc-sel').value;
+      const account = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
       rowsToSave.push({
         date: date.value,
-        narration: narration.value + " (From)",
+        narration: narration.value + (isSource ? " (From)" : " (To)"),
         refid: ref,
-        type: row.querySelector('.type-sel').value,
-        account: (row.querySelector('.acc-sel').value === "Others") ? row.querySelector('.other-acc-input').value : (row.querySelector('.acc-sel').value || "Cash"),
+        type: type,
+        account: account,
         amount: val,
-        denoms: sideIsCash(row) ? getCashDenoms() : {}
+        denoms: (type === "Cash") ? (()=>{let d={}; document.querySelectorAll("[data-d]").forEach(i=>d["d"+i.dataset.d]=i.value||0); return d;})() : {}
       });
     }
   });
-
-  // Capture Destinations
-  document.querySelectorAll('#destContainer .mode-row').forEach(row => {
-    const val = parseFloat(row.querySelector('.amt-input').value);
-    if (val > 0) {
-      rowsToSave.push({
-        date: date.value,
-        narration: narration.value + " (To)",
-        refid: ref,
-        type: row.querySelector('.type-sel').value,
-        account: (row.querySelector('.acc-sel').value === "Others") ? row.querySelector('.other-acc-input').value : (row.querySelector('.acc-sel').value || "Cash"),
-        amount: val,
-        denoms: sideIsCash(row) ? getCashDenoms() : {}
-      });
-    }
-  });
-
-  // Save each row to IndexedDB
   const tx = db.transaction("transferQueue", "readwrite");
   const store = tx.objectStore("transferQueue");
   rowsToSave.forEach(row => store.add(row));
-
-  tx.oncomplete = () => {
-    resetForm();
-    updatePendingCount();
-  };
+  tx.oncomplete = () => { resetForm(); updatePendingCount(); };
 }
 
 async function executeSubmit() {
   if (isSubmitting) return;
-
-  // 1. Double check balance before processing
-  const outTotal = [...document.querySelectorAll('#sourceContainer .amt-input')].reduce((sum, i) => sum + Number(i.value), 0);
-  const inTotal = [...document.querySelectorAll('#destContainer .amt-input')].reduce((sum, i) => sum + Number(i.value), 0);
-
-  // We allow submission if the user confirmed the difference in the modal, 
-  // but we prevent empty submissions here as a safety net.
-  if (outTotal === 0 && inTotal === 0) {
-    alert("No amounts entered to sync.");
-    return;
-  }
-
   confirmModal.classList.add("hidden");
   isSubmitting = true;
   submitBtn.disabled = true;
-  
   const rowsToSend = [];
-  const ref = currentBatchRef; // This was generated in the onsubmit function
-
-  // 2. Capture Sources (From) - Forces positive amount
-  document.querySelectorAll('#sourceContainer .mode-row').forEach(row => {
+  const ref = currentBatchRef;
+  document.querySelectorAll('#sourceContainer .mode-row, #destContainer .mode-row').forEach(row => {
     const val = parseFloat(row.querySelector('.amt-input').value);
     if (val > 0) {
+      const isSource = row.closest('#sourceContainer') !== null;
+      const type = row.querySelector('.type-sel').value;
+      const accSelVal = row.querySelector('.acc-sel').value;
+      const account = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
       rowsToSend.push({
         date: date.value,
-        narration: narration.value + " (From)",
+        narration: narration.value + (isSource ? " (From)" : " (To)"),
         refid: ref,
-        type: row.querySelector('.type-sel').value,
-        account: (row.querySelector('.acc-sel').value === "Others") 
-          ? row.querySelector('.other-acc-input').value 
-          : (row.querySelector('.acc-sel').value || "Cash"),
+        type: type,
+        account: account,
         amount: Math.abs(val),
-        denoms: sideIsCash(row) ? getCashDenoms() : {}
+        denoms: (type === "Cash") ? (()=>{let d={}; document.querySelectorAll("[data-d]").forEach(i=>d["d"+i.dataset.d]=i.value||0); return d;})() : {}
       });
     }
   });
-
-  // 3. Capture Destinations (To) - Forces positive amount
-  document.querySelectorAll('#destContainer .mode-row').forEach(row => {
-    const val = parseFloat(row.querySelector('.amt-input').value);
-    if (val > 0) {
-      rowsToSend.push({
-        date: date.value,
-        narration: narration.value + " (To)",
-        refid: ref,
-        type: row.querySelector('.type-sel').value,
-        account: (row.querySelector('.acc-sel').value === "Others") 
-          ? row.querySelector('.other-acc-input').value 
-          : (row.querySelector('.acc-sel').value || "Cash"),
-        amount: Math.abs(val),
-        denoms: sideIsCash(row) ? getCashDenoms() : {}
-      });
-    }
-  });
-
   try {
-    // 4. Sequential Syncing: Sending rows one after the other
     for (let i = 0; i < rowsToSend.length; i++) {
-      submitBtn.textContent = `Syncing Row ${i + 1}/${rowsToSend.length}...`;
-      
-      await fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        body: JSON.stringify(rowsToSend[i])
-      });
+      submitBtn.textContent = `Syncing Row ${i+1}/${rowsToSend.length}...`;
+      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(rowsToSend[i]) });
+    }
+    alert(`Success! ${rowsToSend.length} rows linked with Reference: ${ref}`);
+    resetForm();
+    sourceContainer.innerHTML = ""; destContainer.innerHTML = "";
+    addMode('source'); addMode('dest');
+    calcSplitTotals();
+  } catch (err) { alert("Sync failed. Please check connection."); }
+  finally { isSubmitting = false; submitBtn.disabled = false; submitBtn.textContent = "Submit Transfer"; currentBatchRef = ""; }
+}
+
+function resetForm() {
+  const bState = batchToggle.checked;
+  selfForm.reset();
+  selfForm.classList.remove("was-validated");
+  cashBox.classList.add("hidden");
+  date.value = new Date().toISOString().split("T")[0];
+  document.querySelectorAll("[data-d]").forEach(i => i.value = "");
+  cashBox.classList.remove("invalid-cash");
+  batchToggle.checked = bState;
+  getEl('totalOut').textContent = "₹0.00";
+  getEl('totalIn').textContent = "₹0.00";
+  getEl('balanceDiff').textContent = "Difference: ₹0.00";
+}
+
+// Enhanced swipe-to-delete for both touch and mouse
+function enableSwipeToDelete(wrapper) {
+  if (!wrapper) return;
+
+  let startX = 0,
+      currentX = 0,
+      isDragging = false;
+
+  const content = wrapper.querySelector('.mode-row-content');
+  const row = wrapper.closest('.mode-row');
+  const container = row.parentElement;
+
+  function onStart(e) {
+    // Ignore if clicking on interactive elements (select, input, button)
+    if (e.target.closest('select, input, button')) return;
+
+    isDragging = true;
+    startX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+    content.style.transition = 'none';
+    e.preventDefault();
+  }
+
+  function onMove(e) {
+    if (!isDragging) return;
+    const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+    currentX = clientX - startX;
+    if (currentX < 0) {
+      content.style.transform = `translateX(${currentX}px)`;
+    }
+    e.preventDefault();
+  }
+
+  function onEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+
+    const rows = container.querySelectorAll('.mode-row');
+    const isFirstRow = rows[0] === row;
+
+    if (currentX < -80 && !isFirstRow) {
+      // Delete with animation
+      content.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+      content.style.transform = 'translateX(-100%)';
+      content.style.opacity = '0';
+
+      setTimeout(() => {
+        row.remove();
+        // Call any required updates after deletion
+        if (typeof calcSplitTotals === 'function') calcSplitTotals();
+        if (typeof autoSyncDestination === 'function') autoSyncDestination();
+        if (typeof checkCashVisibility === 'function') checkCashVisibility();
+      }, 200);
+    } else {
+      // Snap back
+      content.style.transition = 'transform 0.2s ease';
+      content.style.transform = 'translateX(0)';
     }
 
-    // 5. Success Handling
-    // Save the entire batch to localStorage so "Repeat" can rebuild the whole UI
-    localStorage.setItem("lastTransferBatch", JSON.stringify(rowsToSend));
-    
-    alert(`Success! ${rowsToSend.length} rows linked with Reference: ${ref}`);
-    
-    // Clean up form and reset to default state
-    resetForm();
-    sourceContainer.innerHTML = "";
-    destContainer.innerHTML = "";
-    addMode('source'); // Add one default source row
-    addMode('dest');   // Add one default destination row
-    calcSplitTotals();
-
-  } catch (err) {
-    alert("Sync failed. Please check your connection.");
-    console.error("Submission Error:", err);
-  } finally {
-    isSubmitting = false;
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Submit Transfer";
-    currentBatchRef = ""; // Clear for next fresh transaction
+    currentX = 0;
+    content.style.transition = '';
   }
+
+  // Attach listeners for both mouse and touch
+  wrapper.addEventListener('mousedown', onStart);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onEnd);
+  wrapper.addEventListener('touchstart', onStart);
+  window.addEventListener('touchmove', onMove);
+  window.addEventListener('touchend', onEnd);
 }
-
-// Helper: Check if a specific row is using Cash
-function sideIsCash(rowElement) {
-  return rowElement.querySelector('.type-sel').value === "Cash";
-}
-
-// Helper: Collect all cash denominations from the denominations box
-function getCashDenoms() {
-  const d = {};
-  document.querySelectorAll("[data-d]").forEach(i => {
-    d["d" + i.dataset.d] = i.value || 0;
-  });
-  return d;
-}
-
-
-
-async function manualSync() {
-  if (!navigator.onLine) return alert("No Internet");
-  if (!confirm("Sync all?")) return;
-  syncAborted = false; btnSyncAll.classList.add("hidden"); btnStopSync.classList.remove("hidden");
-  const items = await new Promise(res => db.transaction("transferQueue").objectStore("transferQueue").getAll().onsuccess = e => res(e.target.result));
-  for (let i = 0; i < items.length; i++) {
-    if (syncAborted) break;
-    btnStopSync.textContent = `🛑 Stop Syncing (${i+1}/${items.length})`;
-    try {
-      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(items[i]) });
-      await new Promise(res => db.transaction("transferQueue", "readwrite").objectStore("transferQueue").delete(items[i].id).onsuccess = res);
-      updatePendingCount();
-    } catch (e) { break; }
-  }
-  btnStopSync.classList.add("hidden"); btnSyncAll.classList.remove("hidden"); btnStopSync.textContent = "🛑 Stop Syncing";
+function checkCashVisibility() {
+  const anyCashSelected = [...document.querySelectorAll('.type-sel')].some(sel => sel.value === "Cash");
+  cashBox.classList.toggle("hidden", !anyCashSelected);
 }
 
 function renderQueueTable(items) {
   queueTableBody.innerHTML = items.length ? "" : "<tr><td colspan='6'>Queue is empty</td></tr>";
-  
   items.forEach(item => {
-    // 1. Check if this specific row is Cash to show denominations
     const isCash = item.type === 'Cash';
-    const denStr = isCash ? denoms.map(v => `${v}x${item.denoms['d'+v]||0}`).join(', ') : '';
-    
-    // 2. Identify if it's a Source or Destination for the table labels
+    const denStr = isCash && item.denoms ? denoms.map(v => `${v}x${item.denoms['d'+v]||0}`).join(', ') : '';
     const isSource = item.narration.includes("(From)");
-    
-    // 3. Format the Account display
-    const accountDisplay = isCash 
-      ? `<strong>Cash</strong><br><span class="queue-denoms">${denStr}</span>` 
-      : `<strong>${item.account}</strong><br>(${item.type})`;
-
+    const accountDisplay = isCash ? `<strong>Cash</strong><br><span class="queue-denoms">${denStr}</span>` : `<strong>${item.account}</strong><br>(${item.type})`;
     const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${formatDisplayDate(item.date)}</td>
-      <td style="text-align:left;">${item.narration}</td>
-      <td>${isSource ? accountDisplay : '---'}</td>
-      <td>${!isSource ? accountDisplay : '---'}</td>
-      <td style="font-weight:600; color:${isSource ? '#ef4444' : '#10b981'};">
-        ₹${item.amount.toFixed(2)}
-      </td>
-      <td>
-        <button class="action-btn btn-edit-mini" onclick="editItem(${item.id})">✏️</button>
-        <button class="action-btn btn-del-mini" onclick="deleteItem(${item.id})">🗑️</button>
-      </td>
-    `;
+    tr.innerHTML = `<td>${formatDisplayDate(item.date)}</td><td style="text-align:left;">${item.narration}</td><td>${isSource ? accountDisplay : '---'}</td><td>${!isSource ? accountDisplay : '---'}</td><td style="font-weight:600; color:${isSource ? '#ef4444' : '#10b981'};">₹${item.amount.toFixed(2)}</td><td><button class="action-btn btn-edit-mini" onclick="editItem(${item.id})">✏️</button><button class="action-btn btn-del-mini" onclick="deleteItem(${item.id})">🗑️</button></td>`;
     queueTableBody.appendChild(tr);
   });
 }
 
 window.deleteItem = id => { if(confirm("Delete?")) db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = updatePendingCount; };
-window.editItem = id => {
-  const tx = db.transaction("transferQueue", "readonly").objectStore("transferQueue").get(id);
-  tx.onsuccess = () => { loadToForm(tx.result); db.transaction("transferQueue", "readwrite").objectStore("transferQueue").delete(id).onsuccess = () => { queueModal.classList.add("hidden"); updatePendingCount(); }; };
-};
-
-function loadToForm(items) {
+window.editItem = id => { db.transaction("transferQueue","readonly").objectStore("transferQueue").get(id).onsuccess = e => { loadToForm(e.target.result); db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = () => { queueModal.classList.add("hidden"); updatePendingCount(); }; }; };
+window.loadToForm = function(items) {
   if (!Array.isArray(items)) items = [items];
-
-  sourceContainer.innerHTML = "";
-  destContainer.innerHTML = "";
-
+  sourceContainer.innerHTML = ""; destContainer.innerHTML = "";
   const first = items[0];
   date.value = first.date;
   narration.value = first.narration.replace(/ \(From\)| \(To\)/g, "");
-
   items.forEach(item => {
     const isFrom = item.narration.includes("(From)");
     const side = isFrom ? 'source' : 'dest';
     const container = getEl(side === 'source' ? 'sourceContainer' : 'destContainer');
-    
     const rowId = Date.now() + Math.random();
     const div = document.createElement('div');
     div.className = 'mode-row';
     div.id = `row-${rowId}`;
-    
-    // FIX: Added Rewards to the select template
-    div.innerHTML = `
-      <div style="display:flex; gap:8px; margin-bottom:10px;">
-        <select class="type-sel" onchange="handleTypeChange(this, '${rowId}')" required>
-          <option value="">Type</option>
-          <option>Cash</option><option>Upi</option><option>Debit</option><option>Credit</option><option>Rewards</option>
-        </select>
-        <select class="acc-sel hidden" id="acc-${rowId}"></select>
-        <input type="number" class="amt-input" value="${item.amount}" placeholder="Amt" oninput="calcSplitTotals()" required>
-        <button type="button" onclick="this.parentElement.parentElement.remove(); calcSplitTotals(); checkCashVisibility();" style="width:40px; background:#fee2e2; color:#ef4444; border:none; border-radius:8px;">✕</button>
-      </div>
-    `;
+    div.innerHTML = `<div class="swipe-wrapper"><div class="mode-row-content"><select class="type-sel" onchange="handleTypeChange(this, '${rowId}')" required><option value="">Type</option><option>Cash</option><option>Upi</option><option>Debit</option><option>Credit</option><option>Rewards</option></select><select class="acc-sel hidden" id="acc-${rowId}"></select><input type="number" class="amt-input" value="${item.amount}" placeholder="Amt" oninput="calcSplitTotals()" required></div></div>`;
     container.appendChild(div);
-
     const typeSel = div.querySelector('.type-sel');
     typeSel.value = item.type;
-    handleTypeChange(typeSel, rowId); 
-
+    handleTypeChange(typeSel, rowId);
     const accSel = div.querySelector('.acc-sel');
     if (item.type !== 'Cash') {
-      // Check if the saved account name exists in our predefined lists
       const masterList = [...bankAccounts, ...creditCards, ...rewardPlatforms];
-      if (masterList.includes(item.account)) {
-        accSel.value = item.account;
-      } else {
-        // It was a manual "Others" entry
-        accSel.value = "Others";
-        const otherInput = div.querySelector('.other-acc-input');
-        if (otherInput) {
-          otherInput.value = item.account;
-          otherInput.classList.remove('hidden');
-        }
-      }
+      if (masterList.includes(item.account)) accSel.value = item.account;
+      else { accSel.value = "Others"; const other = div.querySelector('.other-acc-input'); if(other) { other.value = item.account; other.classList.remove('hidden'); } }
     }
   });
-
-  calcSplitTotals();
-  checkCashVisibility();
-}
-
-function checkCashVisibility() {
-  const allTypeSelects = document.querySelectorAll('.type-sel');
-  let anyCashSelected = false;
-  allTypeSelects.forEach(sel => {
-    if (sel.value === "Cash") anyCashSelected = true;
-  });
-  cashBox.classList.toggle("hidden", !anyCashSelected);
-}
-batchToggle.onchange = () => {
-  if (batchToggle.checked) {
-    updatePendingCount(); // Force the footer to show/refresh when batch is turned on
-  }
-};
-function enableSwipeToDelete(wrapper) {
-  if (!wrapper) return;
-
-  let startX = 0;
-  let currentX = 0;
-  const content = wrapper.querySelector('.mode-row-content');
-  const row = wrapper.closest('.mode-row');
-  const container = row.parentElement;
-
-  wrapper.addEventListener('touchstart', e => {
-    startX = e.touches[0].clientX;
-    content.style.transition = "none";
-  });
-
-  wrapper.addEventListener('touchmove', e => {
-    currentX = e.touches[0].clientX - startX;
-
-    // 👈 Move LEFT only
-    if (currentX < 0) {
-      content.style.transform = `translateX(${currentX}px)`;
-    }
-  });
-
-  wrapper.addEventListener('touchend', () => {
-    const rows = container.querySelectorAll('.mode-row');
-    const isFirstRow = rows[0] === row;
-
-    if (currentX < -80 && !isFirstRow) {
-
-      content.style.transition = "transform 0.2s ease, opacity 0.2s ease";
-      content.style.transform = "translateX(-100%)";
-      content.style.opacity = "0";
-
-      setTimeout(() => {
-        row.remove();
-        calcSplitTotals();
-        autoSyncDestination();
-        checkCashVisibility();
-      }, 200);
-
-    } else {
-      content.style.transition = "transform 0.2s ease";
-      content.style.transform = "translateX(0)";
-    }
-
-    currentX = 0;
-  });
-}
-function resetForm() {
-  const bState = batchToggle.checked; 
-  selfForm.reset(); 
-  selfForm.classList.remove("was-validated");
-  
-  // Hide old blocks if they still exist in logic
-
-  
-  cashBox.classList.add("hidden"); 
-  date.value = new Date().toISOString().split("T")[0];
-  document.querySelectorAll("[data-d]").forEach(i => i.value = ""); 
-  
-  cashBox.classList.remove("invalid-cash");
-  batchToggle.checked = bState;
-  
-  // Reset the balance summary labels
-  getEl('totalOut').textContent = "₹0.00";
-  getEl('totalIn').textContent = "₹0.00";
-  getEl('balanceDiff').textContent = "Difference: ₹0.00";
-  localStorage.setItem("selfTransferTheme", document.body.classList.contains("dark") ? "dark" : "light");
-}
-
-
-getEl("btnRepeat").onclick = () => { 
-  const lastBatch = JSON.parse(localStorage.getItem("lastTransferBatch")); 
-  if (lastBatch) {
-    loadToForm(lastBatch); 
-  } else {
-    alert("No previous transfer found to repeat.");
-  }
+  calcSplitTotals(); checkCashVisibility();
 };
 
+getEl("btnRepeat").onclick = () => { const last = JSON.parse(localStorage.getItem("lastTransferBatch")); if(last) loadToForm(last); else alert("No previous transfer found."); };
 getEl("btnConfirmFinal").onclick = executeSubmit; getEl("btnConfirmCancel").onclick = () => confirmModal.classList.add("hidden");
-btnViewQueue.onclick = () => queueModal.classList.remove("hidden"); btnSyncAll.onclick = manualSync; btnStopSync.onclick = () => { syncAborted = true; };
-
-if(localStorage.getItem("selfTransferTheme") === "dark") { 
-  document.body.classList.add("dark"); 
-  themeToggle.textContent = "☀️"; 
-}
+btnViewQueue.onclick = () => queueModal.classList.remove("hidden"); btnSyncAll.onclick = () => { if(confirm("Sync all?")){ syncAborted=false; btnSyncAll.classList.add("hidden"); btnStopSync.classList.remove("hidden"); db.transaction("transferQueue").objectStore("transferQueue").getAll().onsuccess = async e=>{ const items=e.target.result; for(let i=0;i<items.length&&!syncAborted;i++){ btnStopSync.textContent=`🛑 Stop (${i+1}/${items.length})`; try{ await fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:JSON.stringify(items[i])}); db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(items[i].id).onsuccess=updatePendingCount; }catch(e){break;} } btnStopSync.classList.add("hidden"); btnSyncAll.classList.remove("hidden"); btnStopSync.textContent="🛑 Stop Syncing"; }; }; };
+btnStopSync.onclick = () => { syncAborted = true; };
+if(localStorage.getItem("selfTransferTheme") === "dark") { document.body.classList.add("dark"); themeToggle.textContent = "☀️"; }
 </script>
-
-  <script>
+<script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
