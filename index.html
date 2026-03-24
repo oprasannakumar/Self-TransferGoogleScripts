@@ -786,9 +786,12 @@ function resetForm() {
 
 // Enhanced swipe-to-delete for both touch and mouse
 function enableSwipeToDelete(wrapper) {
-  if (!wrapper) return;
+  if (!wrapper) {
+    console.warn('Swipe wrapper not found');
+    return;
+  }
 
-  // Prevent the browser from taking over horizontal swipes
+  // Prevent browser from handling horizontal swipes
   wrapper.style.touchAction = 'pan-y';
 
   let startX = 0,
@@ -796,44 +799,82 @@ function enableSwipeToDelete(wrapper) {
       isDragging = false;
 
   const content = wrapper.querySelector('.mode-row-content');
+  if (!content) {
+    console.warn('No .mode-row-content inside wrapper');
+    return;
+  }
+
   const row = wrapper.closest('.mode-row');
   const container = row.parentElement;
 
-  function onStart(e) {
-    // Ignore touches that start on interactive elements
+  // --- Mouse events (for desktop debugging) ---
+  function onMouseDown(e) {
     if (e.target.closest('select, input, button')) return;
-
     isDragging = true;
-    startX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+    startX = e.clientX;
     content.style.transition = 'none';
     e.preventDefault();
   }
 
-  function onMove(e) {
+  function onMouseMove(e) {
     if (!isDragging) return;
-    const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
-    currentX = clientX - startX;
-    if (currentX < 0) {
+    const deltaX = e.clientX - startX;
+    // Only allow leftward swipe (negative delta)
+    if (deltaX < 0) {
+      currentX = deltaX;
       content.style.transform = `translateX(${currentX}px)`;
     }
     e.preventDefault();
   }
 
-  function onEnd() {
+  function onMouseUp(e) {
     if (!isDragging) return;
     isDragging = false;
+    finalizeSwipe();
+  }
 
+  // --- Touch events (mobile) ---
+  function onTouchStart(e) {
+    // Ignore touches that start on input/select/button
+    if (e.target.closest('select, input, button')) return;
+
+    isDragging = true;
+    startX = e.touches[0].clientX;
+    content.style.transition = 'none';
+    e.preventDefault(); // prevents page scroll during swipe
+  }
+
+  function onTouchMove(e) {
+    if (!isDragging) return;
+    const deltaX = e.touches[0].clientX - startX;
+    if (deltaX < 0) {
+      currentX = deltaX;
+      content.style.transform = `translateX(${currentX}px)`;
+    }
+    e.preventDefault(); // prevents browser from panning horizontally
+  }
+
+  function onTouchEnd(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    finalizeSwipe();
+  }
+
+  // Common finalization after swipe ends
+  function finalizeSwipe() {
     const rows = container.querySelectorAll('.mode-row');
     const isFirstRow = rows[0] === row;
 
+    // Swipe threshold: 80px to left
     if (currentX < -80 && !isFirstRow) {
-      // Delete row with animation
+      // Animate out and delete
       content.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
       content.style.transform = 'translateX(-100%)';
       content.style.opacity = '0';
 
       setTimeout(() => {
         row.remove();
+        // Update UI after removal
         if (typeof calcSplitTotals === 'function') calcSplitTotals();
         if (typeof autoSyncDestination === 'function') autoSyncDestination();
         if (typeof checkCashVisibility === 'function') checkCashVisibility();
@@ -844,19 +885,21 @@ function enableSwipeToDelete(wrapper) {
       content.style.transform = 'translateX(0)';
     }
 
+    // Reset state
     currentX = 0;
     content.style.transition = '';
   }
 
-  // Attach mouse events
-  wrapper.addEventListener('mousedown', onStart);
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('mouseup', onEnd);
+  // --- Attach listeners ---
+  // Mouse
+  wrapper.addEventListener('mousedown', onMouseDown);
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
 
-  // Attach touch events directly to the wrapper for better mobile control
-  wrapper.addEventListener('touchstart', onStart, { passive: false });
-  wrapper.addEventListener('touchmove', onMove, { passive: false });
-  wrapper.addEventListener('touchend', onEnd);
+  // Touch (mobile)
+  wrapper.addEventListener('touchstart', onTouchStart, { passive: false });
+  wrapper.addEventListener('touchmove', onTouchMove, { passive: false });
+  wrapper.addEventListener('touchend', onTouchEnd);
 }
 function checkCashVisibility() {
   const anyCashSelected = [...document.querySelectorAll('.type-sel')].some(sel => sel.value === "Cash");
