@@ -150,9 +150,9 @@
       cursor: grab;
       user-select: none;
     }
-    .mode-row-content {
-     touch-action: pan-y;
-    }
+    swipe-wrapper {
+  touch-action: pan-y;
+}
     input:focus, select:focus { 
       outline: none; 
       border-color:#2563eb; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
@@ -241,9 +241,9 @@
       margin: 0;
     }
     .swipe-wrapper {
-      position: relative;
-      margin-bottom: 0px;
-    }
+  width: 100%;
+  position: relative;
+}
     .btn-add-mode {
       width: auto;
       height: 28px;
@@ -797,16 +797,16 @@ function enableSwipeToDelete(wrapper) {
   let startX = 0, startY = 0;
   let currentX = 0;
   let isDragging = false;
-  let isHorizontal = false;
+  let isHorizontal = null; // Use null to detect first movement
 
-  wrapper.addEventListener('touchstart', (e) => {
-    if (e.target.closest('input, select, button')) return;
+wrapper.addEventListener('touchstart', (e) => {
+  if (e.target.closest('select')) return;
 
     const touch = e.touches[0];
     startX = touch.clientX;
     startY = touch.clientY;
     isDragging = true;
-    isHorizontal = false;
+    isHorizontal = null; 
     content.style.transition = 'none';
   }, { passive: true });
 
@@ -817,36 +817,37 @@ function enableSwipeToDelete(wrapper) {
     const dx = touch.clientX - startX;
     const dy = touch.clientY - startY;
 
-    // Decide direction (IMPORTANT)
-    if (!isHorizontal) {
+    // Lock direction on first significant movement
+    if (isHorizontal === null) {
       if (Math.abs(dx) > 10) {
         isHorizontal = true;
       } else if (Math.abs(dy) > 10) {
-        // user is scrolling → cancel swipe
-        isDragging = false;
-        return;
+        isHorizontal = false; // It's a vertical scroll
       }
     }
 
-    if (isHorizontal) {
-      if (dx < 0) {
-        e.preventDefault(); // 🔥 critical
+    // Only move if we confirmed horizontal swipe
+    if (isHorizontal === true) {
+      if (dx < 0) { // Only allow swiping left
+        if (e.cancelable) e.preventDefault(); 
         currentX = dx;
         content.style.transform = `translateX(${dx}px)`;
       }
     }
   }, { passive: false });
 
-  wrapper.addEventListener('touchend', () => {
+  const handleEnd = () => {
     if (!isDragging) return;
-
     isDragging = false;
 
     const rows = container.querySelectorAll('.mode-row');
     const isFirstRow = rows[0] === row;
 
-    if (currentX < -80 && !isFirstRow) {
-      content.style.transition = '0.3s ease';
+    // Threshold: swipe at least 25% of the width
+    const threshold = wrapper.offsetWidth * 0.25;
+
+if (currentX < -threshold && !isFirstRow){
+      content.style.transition = '0.3s cubic-bezier(0.4, 0, 0.2, 1)';
       content.style.transform = 'translateX(-120%)';
       content.style.opacity = '0';
 
@@ -859,10 +860,13 @@ function enableSwipeToDelete(wrapper) {
       content.style.transition = '0.2s ease';
       content.style.transform = 'translateX(0)';
     }
-
     currentX = 0;
-  });
+  };
+
+  wrapper.addEventListener('touchend', handleEnd);
+  wrapper.addEventListener('touchcancel', handleEnd);
 }
+
 function checkCashVisibility() {
   const anyCashSelected = [...document.querySelectorAll('.type-sel')].some(sel => sel.value === "Cash");
   cashBox.classList.toggle("hidden", !anyCashSelected);
