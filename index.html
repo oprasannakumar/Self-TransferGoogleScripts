@@ -43,7 +43,7 @@
       transition: background 0.5s ease, color 0.5s ease;
     }
 
-    form, .confirm-card {
+    form {
       background: var(--bg-card); max-width: 440px; margin: auto; padding: 22px; 
       border-radius: 16px; box-shadow: 0 18px 40px rgba(0,0,0,.08);
       border: 1px solid var(--border-color);
@@ -65,7 +65,36 @@
       box-shadow: 0 0 8px rgba(239, 68, 68, 0.1);
     }
 
-    .confirm-card { max-width: 550px; width: 75%; }
+    .confirm-card { 
+  background: var(--bg-card); 
+  max-width: 550px; 
+  width: 95%; /* Better fit for mobile devices */
+  margin: auto; 
+  padding: 22px; 
+  border-radius: 16px; 
+  box-shadow: 0 18px 40px rgba(0,0,0,.08);
+  border: 1px solid var(--border-color); 
+  position: relative; 
+  transition: background 0.5s ease;
+  display: flex;
+  flex-direction: column;
+  max-height: 70vh; /* Keeps the card within the visible screen area */
+}
+#confirmDetails {
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-bottom: 15px;
+  flex-grow: 1; /* Allows this section to fill available space */
+}
+
+/* Scrollbar styling for a cleaner look */
+#confirmDetails::-webkit-scrollbar {
+  width: 4px;
+}
+#confirmDetails::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
 
     .header-row-top {
       display: flex; align-items: center; justify-content: center;
@@ -186,7 +215,23 @@
     #btnSyncAll { background: var(--secondary); color: white; border: none; gap: 6px; }
     #btnViewQueue { background: #94a3b8; color: white; border: none; }
 
-    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; }
+    .modal { 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  background: rgba(0,0,0,0.7); 
+  backdrop-filter: blur(4px); 
+  z-index: 1000; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  padding: 20px; 
+  box-sizing: border-box; 
+  overflow-y: auto; /* Required to reach the bottom of very long cards */
+}
+
     .modal-content { background: var(--bg-card); color: var(--text-main); width: 95%; max-width: 850px; max-height: 85vh; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-color); }
     
     .confirm-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 13px; }
