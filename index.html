@@ -66,35 +66,35 @@
     }
 
     .confirm-card { 
-  background: var(--bg-card); 
-  max-width: 550px; 
-  width: 95%; /* Better fit for mobile devices */
-  margin: auto; 
-  padding: 22px; 
-  border-radius: 16px; 
-  box-shadow: 0 18px 40px rgba(0,0,0,.08);
-  border: 1px solid var(--border-color); 
-  position: relative; 
-  transition: background 0.5s ease;
-  display: flex;
-  flex-direction: column;
-  max-height: 70vh; /* Keeps the card within the visible screen area */
-}
-#confirmDetails {
-  overflow-y: auto;
-  padding-right: 8px;
-  margin-bottom: 15px;
-  flex-grow: 1; /* Allows this section to fill available space */
-}
+      background: var(--bg-card); 
+      max-width: 550px; 
+      width: 95%; /* Better fit for mobile devices */
+      margin: auto; 
+      padding: 22px; 
+      border-radius: 16px; 
+      box-shadow: 0 18px 40px rgba(0,0,0,.08);
+      border: 1px solid var(--border-color); 
+      position: relative; 
+      transition: background 0.5s ease;
+      display: flex;
+      flex-direction: column;
+      max-height: 70vh; /* Keeps the card within the visible screen area */
+    }
+    #confirmDetails {
+      overflow-y: auto;
+      padding-right: 8px;
+      margin-bottom: 15px;
+      flex-grow: 1; /* Allows this section to fill available space */
+    }
 
-/* Scrollbar styling for a cleaner look */
-#confirmDetails::-webkit-scrollbar {
-  width: 4px;
-}
-#confirmDetails::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 10px;
-}
+    /* Scrollbar styling for a cleaner look */
+    #confirmDetails::-webkit-scrollbar {
+      width: 4px;
+    }
+    #confirmDetails::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 10px;
+    }
 
     .header-row-top {
       display: flex; align-items: center; justify-content: center;
@@ -152,7 +152,6 @@
       background: var(--bg-input); color: var(--text-main); transition: all 0.3s ease;
     }
 
-    /* FIX: Others input appears on new line and matches width of main row */
     .mode-row {
       display: flex;
       flex-direction: column;
@@ -167,8 +166,8 @@
       box-sizing: border-box;
     }
     .mode-row-content:active {
-  cursor: grabbing;
-}
+      cursor: grabbing;
+    }
     .mode-row-content {
       display: flex;
       gap: 8px;
@@ -183,8 +182,8 @@
       user-select: none;
     }
     .swipe-wrapper {
-  touch-action: pan-y;
-}
+      touch-action: pan-y;
+    }
     input:focus, select:focus { 
       outline: none; 
       border-color:#2563eb; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
@@ -216,21 +215,21 @@
     #btnViewQueue { background: #94a3b8; color: white; border: none; }
 
     .modal { 
-  position: fixed; 
-  top: 0; 
-  left: 0; 
-  width: 100%; 
-  height: 100%; 
-  background: rgba(0,0,0,0.7); 
-  backdrop-filter: blur(4px); 
-  z-index: 1000; 
-  display: flex; 
-  justify-content: center; 
-  align-items: center; 
-  padding: 20px; 
-  box-sizing: border-box; 
-  overflow-y: auto; /* Required to reach the bottom of very long cards */
-}
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(0,0,0,0.7); 
+      backdrop-filter: blur(4px); 
+      z-index: 1000; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      padding: 20px; 
+      box-sizing: border-box; 
+      overflow-y: auto; 
+    }
 
     .modal-content { background: var(--bg-card); color: var(--text-main); width: 95%; max-width: 850px; max-height: 85vh; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-color); }
     
@@ -289,9 +288,9 @@
       margin: 0;
     }
     .swipe-wrapper {
-  width: 100%;
-  position: relative;
-}
+      width: 100%;
+      position: relative;
+    }
     .btn-add-mode {
       width: auto;
       height: 28px;
@@ -496,6 +495,25 @@ async function updatePendingCount(){
   };
 }
 
+// ============== NEW NARRATION LISTENER ==============
+narration.addEventListener('input', (e) => {
+  if (e.target.value.trim().toLowerCase() === "cleared card bill") {
+    // Attempt to select Credit type on the first Destination row
+    let destRow = document.querySelector('#destContainer .mode-row');
+    if (!destRow) {
+      addMode('dest');
+      destRow = document.querySelector('#destContainer .mode-row');
+    }
+    if (destRow) {
+      const typeSel = destRow.querySelector('.type-sel');
+      typeSel.value = "Credit";
+      const rowId = destRow.id.replace('row-', '');
+      handleTypeChange(typeSel, rowId);
+    }
+  }
+});
+// =====================================================
+
 function addMode(side) {
   const container = getEl(side === 'source' ? 'sourceContainer' : 'destContainer');
   const rowId = Date.now() + Math.random();
@@ -568,13 +586,47 @@ function handleTypeChange(select, rowId) {
     otherInput.type = 'text';
     otherInput.className = 'other-acc-input hidden';
     otherInput.placeholder = 'Enter Account Name';
-    row.appendChild(otherInput);  // appears on new line due to flex column
+    row.appendChild(otherInput);
 
-    accSel.onchange = () => {
+    accSel.onchange = async () => {
       const isOther = accSel.value === 'Others';
       otherInput.classList.toggle('hidden', !isOther);
       otherInput.required = isOther;
       if (!isOther) otherInput.value = ""; 
+
+      // ================== NEW CREDIT CARD BILL LOGIC ==================
+      if (type === "Credit" && narration.value.trim().toLowerCase() === "cleared card bill") {
+        const cardName = accSel.value;
+        if (cardName && !isOther) {
+          amtInput.value = "";
+          amtInput.placeholder = "Loading...";
+          
+          try {
+            // GET request to the Google Script Web App
+            const response = await fetch(`${SCRIPT_URL}?action=getBillingAmount&cardName=${encodeURIComponent(cardName)}`);
+            const data = await response.json();
+            
+            if (data && data.amount !== undefined && data.amount !== "") {
+              // Updates the current (To / Destination) amount
+              amtInput.value = data.amount;
+              
+              // ---> NEW: Updates the First (From / Source) amount <---
+              const sourceAmtInput = document.querySelector('#sourceContainer .amt-input');
+              if (sourceAmtInput) {
+                sourceAmtInput.value = data.amount;
+              }
+              
+              calcSplitTotals();
+            } else {
+              amtInput.placeholder = "0.00";
+            }
+          } catch (e) {
+            console.error("Failed to fetch billing amount:", e);
+            amtInput.placeholder = "Amt";
+          }
+        }
+      }
+      // =================================================================
     };
   }
   checkCashVisibility();
