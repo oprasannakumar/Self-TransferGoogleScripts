@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -57,11 +56,6 @@
     .was-validated select:invalid {
       border: 1.5px solid var(--danger) !important;
       background-color: rgba(239, 68, 68, 0.03);
-    }
-    .was-validated #cashBox.invalid-cash {
-      border: 2px solid var(--danger) !important;
-      background-color: rgba(239, 68, 68, 0.05);
-      box-shadow: 0 0 8px rgba(239, 68, 68, 0.1);
     }
 
     .confirm-card { 
@@ -174,9 +168,30 @@
     
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-    .mode-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-    .other-acc-input { margin-top: 4px; width: 100%; box-sizing: border-box; }
-    .mode-row-content { display: flex; gap: 8px; align-items: center; padding: 0 8px; height: var(--btn-h); background: var(--bg-card); transition: transform 0.25s ease; position: relative; z-index: 2; cursor: grab; user-select: none; }
+    .other-acc-input { margin-top: 6px; width: 100%; box-sizing: border-box; grid-column: 1 / -1; }
+    
+    .mode-block {
+      margin-bottom: 12px;
+    }
+    /* Default 3 items in a single row: Type, Account, Amount */
+    .mode-row-content { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr 1fr; 
+      gap: 8px; 
+      align-items: center; 
+      padding: 0; 
+      background: transparent; 
+      transition: transform 0.25s ease, grid-template-columns 0.3s ease; 
+      position: relative; 
+      z-index: 2; 
+      cursor: grab; 
+      user-select: none; 
+    }
+    /* When Cash is selected, switch to 2 items sharing equal width */
+    .mode-row-content.cash-layout {
+      grid-template-columns: 1fr 1fr;
+    }
+    
     .mode-row-content:active { cursor: grabbing; }
     .swipe-wrapper { touch-action: pan-y; }
     
@@ -195,12 +210,6 @@
     label + input { margin-bottom: 6px; }
     hr { border: none; border-top: 1px dashed var(--border-color); margin: 12px 0; }
     .hidden { display: none !important; }
-
-    #cashBox { margin-top: 14px; background: var(--bg-body); padding: 14px; border-radius: 14px; border: 1px solid var(--border-color); transition: all 0.3s ease; }
-    #denominations, .confirm-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .denom-card, .matrix-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 5px; text-align: center; }
-    .denom-label, .matrix-label { font-weight: 600; margin-bottom: 5px; font-size: 11px; color: var(--text-label); }
-    .denom-card input { height: 32px; text-align: center; margin-top: 0; border-radius: 6px; width: 80%; }
 
     .sync-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border-color); }
     #btnSyncAll { background: var(--secondary); color: white; border: none; gap: 6px; }
@@ -244,25 +253,15 @@
     .btn-add-mode:hover { opacity: 0.9; }
 
     #toast {
-      position:fixed; bottom:40px; left:50%; transform:translate(-50%,40px) scale(0.95);
-      background:var(--primary); color:white; padding:12px 20px; border-radius:14px;
-      font-size:14px; font-weight:600; box-shadow:0 10px 30px rgba(0,0,0,0.25);
-      z-index:20000; text-align:center; opacity:0; pointer-events:none;
-      transition:transform 0.35s cubic-bezier(.22,1,.36,1),opacity 0.35s ease;
+      position: fixed; bottom: 40px; left: 50%; transform: translate(-50%, 40px) scale(0.95);
+      background: var(--primary); color: white; padding: 12px 20px; border-radius: 14px;
+      font-size: 14px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      z-index: 20000; text-align: center; opacity: 0; pointer-events: none;
+      transition: transform 0.35s cubic-bezier(.22,1,.36,1), opacity 0.35s ease;
     }
-    #toast.show { opacity:1; transform:translate(-50%,0) scale(1); }
+    #toast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
 
-    /* Mode Block Styles */
-    .mode-block {
-      background: var(--bg-body);
-      padding: 10px 14px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      border: 1px solid var(--border-color);
-    }
-    .mode-block .confirm-item {
-      padding: 6px 0;
-    }
+    .confirm-item { padding: 6px 0; }
   </style>
 </head>
 <body>
@@ -337,11 +336,6 @@
     <div>Total Out: <span id="totalOut">₹0.00</span></div>
     <div>Total In: <span id="totalIn">₹0.00</span></div>
     <div id="balanceDiff" style="font-weight:bold;">Difference: ₹0.00</div>
-  </div>
-
-  <div id="cashBox" class="hidden">
-    <label style="color: var(--primary); margin-bottom: 10px;">Cash Denominations</label>
-    <div id="denominations"></div>
   </div>
 
   <div class="btn-group">
@@ -438,7 +432,7 @@
 <script>
 // Backend Endpoints
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyW755SytjdG7e_qqlgkhHfFmdUvqr5SQv66B6yHF41Z0qeeuWuH3XdCzeEsMtbZwrKOA/exec";
-const DELETE_URL = "https://script.google.com/macros/s/AKfycbz5jwjriTJB2rqI7G66VmtdLTBGR0tQ4j_2iRKDubEERdR-pHI-Sg5OiORQxqgXsg_G/exec"; // Used for deleting edits
+const DELETE_URL = "https://script.google.com/macros/s/AKfycbz5jwjriTJB2rqI7G66VmtdLTBGR0tQ4j_2iRKDubEERdR-pHI-Sg5OiORQxqgXsg_G/exec";
 
 let isSubmitting = false, syncAborted = false, db;
 let _editingRefId = null; 
@@ -452,12 +446,11 @@ const denoms=[500,200,100,50,20,10,5,2,1];
 
 const getEl = id => document.getElementById(id);
 
-// Ensure the format strictly outputs as dd-MMM-yyyy
 const formatDisplayDate = dStr => {
   if(!dStr) return "";
   const d = new Date(dStr);
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${d.getFullYear()}`; // dd-MMM-yyyy
+  return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${d.getFullYear()}`;
 };
 
 const parseToStrictDate = d => {
@@ -469,7 +462,6 @@ const parseToStrictDate = d => {
     }
 };
 
-// Deep compare function to prevent false positives when checking for "no changes"
 function isStateEqual(oldSt, newSt) {
     if (parseToStrictDate(oldSt.date) !== parseToStrictDate(newSt.date)) return false;
     if (String(oldSt.reference).trim() !== String(newSt.reference).trim()) return false;
@@ -501,20 +493,82 @@ function isStateEqual(oldSt, newSt) {
 
 const showToast = (msg, color = "var(--primary)") => {
     const toast = getEl("toast");
-    toast.textContent = msg;
+    toast.innerHTML = msg;
+    toast.style.position = "fixed";
+    toast.style.bottom = "40px";
+    toast.style.top = "auto";
+    toast.style.left = "50%";
+    toast.style.transform = "translate(-50%, 40px) scale(0.95)";
     toast.style.background = color;
+    toast.style.color = "white";
+    toast.style.border = "none";
+    toast.style.padding = "12px 20px";
+    toast.style.minWidth = "auto";
+    toast.style.maxWidth = "none";
+    toast.style.pointerEvents = "none";
     toast.classList.remove("hidden");
-    requestAnimationFrame(() => toast.classList.add("show"));
+    requestAnimationFrame(() => {
+        toast.style.transform = "translate(-50%, 0) scale(1)";
+        toast.classList.add("show");
+    });
     setTimeout(() => { 
         toast.classList.remove("show");
         setTimeout(() => toast.classList.add("hidden"), 350); 
     }, 2200);
 };
 
+const showConfirmToast = (msg, onConfirm) => {
+    const toast = getEl("toast");
+    toast.innerHTML = `
+        <div style="margin-bottom: 12px; text-align: center;">${msg}</div>
+        <div style="display: flex; gap: 10px; justify-content: center; align-items: center; width: 100%;">
+            <button id="toastYes" style="height: 36px; padding: 0 20px; background: var(--danger); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;">Delete</button>
+            <button id="toastNo" style="height: 36px; padding: 0 20px; background: rgba(255,255,255,0.15); color: var(--text-main); border: 1.5px solid var(--border-color); border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;">Cancel</button>
+        </div>
+    `;
+    toast.style.position = "fixed";
+    toast.style.top = "50%";
+    toast.style.bottom = "auto";
+    toast.style.left = "50%";
+    toast.style.transform = "translate(-50%, calc(-50% + 20px)) scale(0.95)";
+    toast.style.background = "var(--bg-card)";
+    toast.style.color = "var(--text-main)";
+    toast.style.border = "1px solid var(--border-color)";
+    toast.style.padding = "16px 24px";
+    toast.style.minWidth = "280px";
+    toast.style.maxWidth = "90%";
+    toast.style.pointerEvents = "auto";
+    toast.classList.remove("hidden");
+    requestAnimationFrame(() => {
+        toast.style.transform = "translate(-50%, -50%) scale(1)";
+        toast.classList.add("show");
+    });
+
+    const yesBtn = getEl("toastYes");
+    const noBtn = getEl("toastNo");
+
+    const hide = () => {
+        toast.classList.remove("show");
+        toast.style.transform = "translate(-50%, calc(-50% + 20px)) scale(0.95)";
+        setTimeout(() => {
+            toast.classList.add("hidden");
+            toast.style.pointerEvents = "none";
+            toast.innerHTML = "";
+        }, 350);
+    };
+
+    yesBtn.onclick = () => {
+        hide();
+        onConfirm();
+    };
+    noBtn.onclick = () => {
+        hide();
+    };
+};
+
 // UI Elements
 const selfForm = getEl("form"), dateInp = getEl("date"), refInp = getEl("reference"), narration = getEl("narration"), 
-      cashBox = getEl("cashBox"), denDiv = getEl("denominations"), submitBtn = getEl("submitBtn"), 
-      batchToggle = getEl("batchToggle"), sourceContainer = getEl("sourceContainer"), destContainer = getEl("destContainer");
+      submitBtn = getEl("submitBtn"), batchToggle = getEl("batchToggle"), sourceContainer = getEl("sourceContainer"), destContainer = getEl("destContainer");
 
 const syncCountLabel = getEl("syncCount"), btnSyncAll = getEl("btnSyncAll"), btnStopSync = getEl("btnStopSync"), 
       footerSync = getEl("footerSync"), btnViewQueue = getEl("btnViewQueue"), queueModal = getEl("queueModal"), queueTableBody = getEl("queueTableBody");
@@ -522,7 +576,6 @@ const syncCountLabel = getEl("syncCount"), btnSyncAll = getEl("btnSyncAll"), btn
 const themeToggle = getEl("themeToggle"), statusDot = getEl("statusDot"), confirmModal = getEl("confirmModal"), 
       confirmDetails = getEl("confirmDetails"), navFab = getEl('navFab'), fabBtn = getEl('fabToggle');
 
-// Init Logic
 const getTodayIST = () => {
     const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
     const yyyy = d.getFullYear(), mm = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0');
@@ -539,8 +592,6 @@ const setRefPlaceholder = () => {
 
 dateInp.value = getTodayIST();
 setRefPlaceholder();
-
-denoms.forEach(d => { denDiv.innerHTML += `<div class="denom-card"><div class="denom-label">₹${d}</div><input type="number" class="denom-inp" data-d="${d}" min="0" placeholder="0"></div>`; });
 
 fabBtn.onclick = e => { e.stopPropagation(); navFab.classList.toggle('active'); };
 document.addEventListener('click', () => navFab.classList.remove('active'));
@@ -575,7 +626,6 @@ async function updatePendingCount(){
   };
 }
 
-// ==== Daily Logger & Dashboard Logic ====
 dateInp.addEventListener('change', (e) => {
     const selectedDate = e.target.value;
     let data = { date: selectedDate, txns: [] };
@@ -655,7 +705,6 @@ function renderSessionDashboard() {
     getEl('ballInVal').textContent = '+₹' + Math.round(inT).toLocaleString('en-IN');
 }
 
-// Side Ball Drag Logic
 (function setupDraggableBall() {
     const ball = getEl('dragDashBall');
     let isDragging = false, startY = 0, initialTop = 180, hasMoved = false;
@@ -693,18 +742,21 @@ function renderSessionDashboard() {
 
 function getDenomMatrixHtml(denomsObj) {
     if(!denomsObj || Object.keys(denomsObj).length === 0) return "";
-    let matrixHtml = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; background: var(--bg-card); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);">`;
+    let matrixHtml = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; background: var(--bg-card); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color); width: 88%; margin-left: auto; margin-right: auto;">`;
     denoms.forEach(d => {
       const count = parseInt(denomsObj[d] || 0);
-      const opacity = count > 0 ? "1" : "0.4";
+      const opacity = count > 0 ? "1" : "0.5";
       const border = count > 0 ? "var(--primary)" : "var(--border-color)";
-      matrixHtml += `<div style="font-size: 10px; background: var(--bg-body); border: 1px solid ${border}; border-radius: 6px; padding: 4px 2px; text-align: center; opacity: ${opacity};"><div style="font-weight: bold;">₹${d}</div><div>${count}</div></div>`;
+      matrixHtml += `
+        <div style="background: var(--bg-card); border: 1px solid ${border}; border-radius: 10px; padding: 8px 4px; text-align: center; opacity: ${opacity};">
+          <div style="font-weight: 600; margin-bottom: 4px; font-size: 11px; color: var(--text-label);">₹${d}</div>
+          <div style="font-weight: 700; font-size: 13px; color: var(--text-main);">${count}</div>
+        </div>`;
     });
     matrixHtml += `</div>`;
     return matrixHtml;
 }
 
-// Transaction Details View Logic
 window.viewDailyTxnDetails = function(refId) {
     const data = getDailyTxns();
     const txn = data.txns.find(t => t.id === refId);
@@ -713,12 +765,12 @@ window.viewDailyTxnDetails = function(refId) {
         
         txn.formState.sources.forEach((s, idx) => {
             sourceHtml += `
-            <div class="mode-block">
-                <div class="confirm-item" style="border-bottom: 1px dashed var(--border-color); padding-top: 0;">
+            <div class="confirm-item" style="border-bottom: 1px dashed var(--border-color); padding-top: 0; display:flex; flex-direction:column; align-items:flex-start;">
+                <div style="display:flex; justify-content:space-between; width:100%;">
                     <span class="confirm-label">Account / Mode ${idx + 1}</span>
                     <span class="confirm-val" style="color:var(--danger); font-weight:600;">${s.account} (${s.type})</span>
                 </div>
-                <div class="confirm-item" style="border-bottom: none; padding-bottom: 0;">
+                <div style="display:flex; justify-content:space-between; width:100%; margin-top:4px;">
                     <span class="confirm-label">Amount</span>
                     <span class="confirm-val" style="font-size: 14px; font-weight: bold; color: var(--text-main);">₹${s.amount.toFixed(2)}</span>
                 </div>
@@ -728,12 +780,12 @@ window.viewDailyTxnDetails = function(refId) {
         
         txn.formState.dests.forEach((d, idx) => {
             destHtml += `
-            <div class="mode-block">
-                <div class="confirm-item" style="border-bottom: 1px dashed var(--border-color); padding-top: 0;">
+            <div class="confirm-item" style="border-bottom: 1px dashed var(--border-color); padding-top: 0; display:flex; flex-direction:column; align-items:flex-start;">
+                <div style="display:flex; justify-content:space-between; width:100%;">
                     <span class="confirm-label">Account / Mode ${idx + 1}</span>
                     <span class="confirm-val" style="color:var(--secondary); font-weight:600;">${d.account} (${d.type})</span>
                 </div>
-                <div class="confirm-item" style="border-bottom: none; padding-bottom: 0;">
+                <div style="display:flex; justify-content:space-between; width:100%; margin-top:4px;">
                     <span class="confirm-label">Amount</span>
                     <span class="confirm-val" style="font-size: 14px; font-weight: bold; color: var(--text-main);">₹${d.amount.toFixed(2)}</span>
                 </div>
@@ -759,7 +811,6 @@ window.viewDailyTxnDetails = function(refId) {
     }
 };
 
-// Render Swipeable Daily Logs
 function renderDailyTxnsModal() {
     const data = getDailyTxns();
     const listDiv = getEl('todayTxnList');
@@ -769,7 +820,6 @@ function renderDailyTxnsModal() {
         return;
     }
     
-    // Render latest first
     const sorted = [...data.txns].reverse();
     sorted.forEach(t => {
         const wrapper = document.createElement('div');
@@ -805,7 +855,6 @@ function renderDailyTxnsModal() {
         btnEdit.onclick = (e) => { e.stopPropagation(); editDailyTxn(t.id); };
         btnDelete.onclick = (e) => { e.stopPropagation(); removeDailyTxn(t.id); };
         
-        // Right-to-Left Swipe Logic (Reveal buttons on right)
         let startX = 0, currentX = 0, isDragging = false, hasDragged = false;
         function onStart(x) { 
             document.querySelectorAll('.daily-txn-content.swiped').forEach(c => { 
@@ -816,10 +865,10 @@ function renderDailyTxnsModal() {
         function onMove(x) { 
             if (!isDragging) return; 
             currentX = x - startX; 
-            if (content.classList.contains('swiped')) currentX -= 120; // offset if already open
+            if (content.classList.contains('swiped')) currentX -= 120;
             if (Math.abs(currentX) > 5) hasDragged = true; 
-            if (currentX > 0) currentX = 0; // Prevent right swipe
-            if (currentX < -140) currentX = -140; // Max left drag
+            if (currentX > 0) currentX = 0;
+            if (currentX < -140) currentX = -140;
             content.style.transform = `translateX(${currentX}px)`; 
         }
         function onEnd() { 
@@ -859,34 +908,31 @@ function renderDailyTxnsModal() {
     });
 }
 
-// Delete from Backend
 window.removeDailyTxn = async function(id) {
-    if(!confirm("Delete transfer locally and from the backend?")) return;
-    const data = getDailyTxns();
-    const txn = data.txns.find(t => t.id === id);
-    if (!txn) return;
-    
-    // Remove locally
-    data.txns = data.txns.filter(t => t.id !== id);
-    localStorage.setItem('daily_transfers', JSON.stringify(data));
-    renderSessionDashboard();
-    renderDailyTxnsModal();
-    
-    // Call backend delete
-    try {
-        await fetch(`${DELETE_URL}?action=delete&value=${encodeURIComponent(id)}`, { method: "GET", mode: "no-cors" });
-        showToast("🗑️ Delete command sent to backend");
-    } catch (e) { 
-        showToast("Failed to connect to backend", "var(--danger)"); 
-    }
+    showConfirmToast("Delete transfer locally and from the backend?", async () => {
+        const data = getDailyTxns();
+        const txn = data.txns.find(t => t.id === id);
+        if (!txn) return;
+        
+        data.txns = data.txns.filter(t => t.id !== id);
+        localStorage.setItem('daily_transfers', JSON.stringify(data));
+        renderSessionDashboard();
+        renderDailyTxnsModal();
+        showToast("🗑️ Transfer deleted locally");
+        
+        try {
+            await fetch(`${DELETE_URL}?action=delete&value=${encodeURIComponent(id)}`, { method: "GET", mode: "no-cors" });
+            showToast("🗑️ Transfer deleted from backend");
+        } catch (e) { 
+            showToast("Backend connection failed", "var(--danger)"); 
+        }
+    });
 };
-
-// ==== Core Form Logic ====
 
 narration.addEventListener('input', (e) => {
   if (e.target.value.trim().toLowerCase() === "cleared card bill") {
-    let destRow = document.querySelector('#destContainer .mode-row');
-    if (!destRow) { addMode('dest'); destRow = document.querySelector('#destContainer .mode-row'); }
+    let destRow = document.querySelector('#destContainer .mode-block');
+    if (!destRow) { addMode('dest'); destRow = document.querySelector('#destContainer .mode-block'); }
     if (destRow) {
       const typeSel = destRow.querySelector('.type-sel');
       typeSel.value = "Credit";
@@ -900,7 +946,7 @@ function addMode(side, initialData = null) {
   const container = getEl(side === 'source' ? 'sourceContainer' : 'destContainer');
   const rowId = Date.now() + Math.random();
   const div = document.createElement('div');
-  div.className = 'mode-row';
+  div.className = 'mode-block';
   div.id = `row-${rowId}`;
   div.innerHTML = `
     <div class="swipe-wrapper">
@@ -913,9 +959,20 @@ function addMode(side, initialData = null) {
           <option>Credit</option>
           <option>Rewards</option>
         </select>
-        <select class="acc-sel hidden" id="acc-${rowId}" required><option value="">Account</option></select>
+        <select class="acc-sel" id="acc-${rowId}" required><option value="">Account</option></select>
         <input type="number" class="amt-input" step="0.01" inputmode="decimal" placeholder="Amt" oninput="calcSplitTotals(); if(this.closest('#sourceContainer')) autoSyncDestination();" required>
       </div>
+    </div>
+    <div id="row-denom-${rowId}" class="row-denominations hidden" style="margin-top: 10px; padding: 12px; background: var(--bg-body); border-radius: 12px; border: 1px solid var(--border-color); width: 88%; margin-left: auto; margin-right: auto;">
+       <div style="font-size: 12px; font-weight: 600; color: var(--primary); margin-bottom: 8px; text-align: center;">Cash Denominations</div>
+       <div class="row-denom-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+          ${denoms.map(d => `
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 4px; text-align: center;">
+              <div style="font-weight: 600; margin-bottom: 4px; font-size: 11px; color: var(--text-label);">₹${d}</div>
+              <input type="number" class="row-denom-inp" data-d="${d}" min="0" value="" placeholder="0" style="height: 30px; text-align: center; margin-top: 0; border-radius: 6px; width: 80%; padding: 0;" oninput="calcRowCash('${rowId}')">
+            </div>
+          `).join('')}
+       </div>
     </div>
   `;
   container.appendChild(div);
@@ -939,26 +996,45 @@ function addMode(side, initialData = null) {
          }
       }
       div.querySelector('.amt-input').value = initialData.amount || "";
+      
+      if(initialData.type === 'Cash' && initialData.denoms) {
+          Object.keys(initialData.denoms).forEach(dKey => {
+              const inp = div.querySelector(`.row-denom-inp[data-d="${dKey}"]`);
+              if(inp) inp.value = initialData.denoms[dKey] || "";
+          });
+          calcRowCash(rowId);
+      }
   }
 }
 
 function handleTypeChange(select, rowId) {
   const type = select.value;
-  const row = select.closest('.mode-row');
+  const row = select.closest('.mode-block');
+  const content = row.querySelector('.mode-row-content');
   const accSel = getEl(`acc-${rowId}`);
   const amtInput = row.querySelector('.amt-input');
+  const denomSection = getEl(`row-denom-${rowId}`);
   
   const existingOther = row.querySelector('.other-acc-input');
   if (existingOther) existingOther.remove();
 
-  if (type === "Cash" || type === "") {
-    amtInput.readOnly = (type === "Cash");
-    if(type === "Cash") { amtInput.style.backgroundColor = "var(--bg-body)"; amtInput.style.fontWeight = "600"; calcCash(); } 
-    else { amtInput.readOnly = false; amtInput.style.backgroundColor = ""; amtInput.style.fontWeight = "400"; }
-    accSel.classList.add('hidden'); accSel.required = false;
+  if (type === "Cash") {
+    amtInput.readOnly = true;
+    amtInput.style.backgroundColor = "var(--bg-body)"; 
+    amtInput.style.fontWeight = "600";
+    denomSection.classList.remove('hidden');
+    calcRowCash(rowId);
+    accSel.classList.add('hidden'); 
+    accSel.required = false;
+    content.classList.add('cash-layout');
   } else {
-    amtInput.readOnly = false; amtInput.style.backgroundColor = ""; amtInput.style.fontWeight = "400";
-    accSel.classList.remove('hidden'); accSel.required = true;
+    amtInput.readOnly = false; 
+    amtInput.style.backgroundColor = ""; 
+    amtInput.style.fontWeight = "400";
+    denomSection.classList.add('hidden');
+    accSel.classList.remove('hidden'); 
+    accSel.required = true;
+    content.classList.remove('cash-layout');
     
     accSel.innerHTML = "<option value=''>Account</option>";
     let list = (type === "Credit") ? creditCards : (type === "Rewards" ? rewardPlatforms : bankAccounts);
@@ -967,7 +1043,8 @@ function handleTypeChange(select, rowId) {
     
     const otherInput = document.createElement('input');
     otherInput.type = 'text'; otherInput.className = 'other-acc-input hidden';
-    otherInput.placeholder = 'Enter Account Name'; row.appendChild(otherInput);
+    otherInput.placeholder = 'Enter Account Name'; 
+    row.querySelector('.mode-row-content').appendChild(otherInput);
 
     accSel.onchange = async () => {
       const isOther = accSel.value === 'Others';
@@ -993,41 +1070,44 @@ function handleTypeChange(select, rowId) {
       }
     };
   }
-  checkCashVisibility();
 }
 
-function calcCash() {
+function calcRowCash(rowId) {
+  const denomSection = getEl(`row-denom-${rowId}`);
   let total = 0;
-  document.querySelectorAll(".denom-inp").forEach(i => total += Number(i.dataset.d) * Number(i.value || 0));
-  document.querySelectorAll('.mode-row').forEach(row => {
-    if (row.querySelector('.type-sel').value === "Cash") row.querySelector('.amt-input').value = total > 0 ? total.toFixed(2) : "";
-  });
-  const cb = getEl("cashBox");
-  cb.style.border = ""; cb.classList.remove("invalid-cash");
+  if(denomSection) {
+      denomSection.querySelectorAll('.row-denom-inp').forEach(i => {
+        total += Number(i.dataset.d) * Number(i.value || 0);
+      });
+  }
+  const row = getEl(`row-${rowId}`);
+  if(row) {
+      const amtInput = row.querySelector('.amt-input');
+      amtInput.value = total > 0 ? total.toFixed(2) : "";
+  }
   calcSplitTotals();
 }
 
 function autoSyncDestination() {
   let totalSource = 0;
   document.querySelectorAll('#sourceContainer .amt-input').forEach(i => totalSource += Number(i.value || 0));
-  const destRows = document.querySelectorAll('#destContainer .mode-row');
+  const destRows = document.querySelectorAll('#destContainer .mode-block');
   if (destRows.length === 0) return;
-  if (destRows.length === 1) { destRows[0].querySelector('.amt-input').value = totalSource !== 0 ? totalSource : ""; } 
+  if (destRows.length === 1) { 
+      const destType = destRows[0].querySelector('.type-sel').value;
+      if (destType !== 'Cash') {
+          destRows[0].querySelector('.amt-input').value = totalSource !== 0 ? totalSource : ""; 
+      }
+  } 
   else {
     destRows.forEach((row, index) => {
       const amtField = row.querySelector('.amt-input');
-      if (index === 0) amtField.value = totalSource !== 0 ? totalSource : ""; else amtField.value = "";
+      const destType = row.querySelector('.type-sel').value;
+      if (index === 0 && destType !== 'Cash') amtField.value = totalSource !== 0 ? totalSource : ""; 
     });
   }
   calcSplitTotals();
 }
-
-document.addEventListener('input', (e) => {
-  if (e.target.classList.contains('denom-inp')) {
-    calcCash();
-    if (selfForm.classList.contains('was-validated')) validateCash();
-  }
-});
 
 function calcSplitTotals() {
   let out = 0, inp = 0;
@@ -1044,7 +1124,7 @@ function calcSplitTotals() {
 function enableRowSwipe(wrapper) {
   if (!wrapper) return;
   const content = wrapper.querySelector('.mode-row-content');
-  const row = wrapper.closest('.mode-row');
+  const row = wrapper.closest('.mode-block');
   const container = row.parentElement;
   let startX = 0, startY = 0, currentX = 0, isDragging = false, isHorizontal = null;
 
@@ -1070,7 +1150,7 @@ function enableRowSwipe(wrapper) {
 
   const handleEnd = () => {
     if (!isDragging) return; isDragging = false;
-    const rows = container.querySelectorAll('.mode-row');
+    const rows = container.querySelectorAll('.mode-block');
     const isFirstRow = rows[0] === row;
     const threshold = wrapper.offsetWidth * 0.25;
 
@@ -1109,7 +1189,6 @@ selfForm.addEventListener('input', (e) => {
   }
 });
 
-// ==== State Builder ====
 function buildFormState() {
   const state = {
       date: dateInp.value,
@@ -1119,46 +1198,71 @@ function buildFormState() {
       dests: []
   };
   
-  document.querySelectorAll('#sourceContainer .mode-row').forEach(row => {
+  document.querySelectorAll('#sourceContainer .mode-block').forEach(row => {
     const type = row.querySelector('.type-sel').value;
-    const accSelVal = row.querySelector('.acc-sel').value;
-    const account = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
+    const accSelVal = row.querySelector('.acc-sel');
+    const account = (accSelVal && accSelVal.value === "Others") ? row.querySelector('.other-acc-input').value : (accSelVal ? accSelVal.value : "Cash");
     const val = parseFloat(row.querySelector('.amt-input').value || 0);
+    
     if (val > 0) {
         let denomsObj = {};
-        if (type === "Cash") document.querySelectorAll(".denom-inp").forEach(i => { denomsObj[i.dataset.d] = i.value || 0; });
-        state.sources.push({ type, account, amount: val, denoms: denomsObj });
+        if (type === "Cash") {
+            row.querySelectorAll('.row-denom-inp').forEach(i => { 
+                denomsObj['d' + i.dataset.d] = Number(i.value || 0); 
+            });
+        }
+        state.sources.push({ type, account: type === 'Cash' ? 'Cash' : account, amount: val, denoms: denomsObj });
     }
   });
   
-  document.querySelectorAll('#destContainer .mode-row').forEach(row => {
+  document.querySelectorAll('#destContainer .mode-block').forEach(row => {
     const type = row.querySelector('.type-sel').value;
-    const accSelVal = row.querySelector('.acc-sel').value;
-    const account = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
+    const accSelVal = row.querySelector('.acc-sel');
+    const account = (accSelVal && accSelVal.value === "Others") ? row.querySelector('.other-acc-input').value : (accSelVal ? accSelVal.value : "Cash");
     const val = parseFloat(row.querySelector('.amt-input').value || 0);
+    
     if (val > 0) {
         let denomsObj = {};
-        if (type === "Cash") document.querySelectorAll(".denom-inp").forEach(i => { denomsObj[i.dataset.d] = i.value || 0; });
-        state.dests.push({ type, account, amount: val, denoms: denomsObj });
+        if (type === "Cash") {
+            row.querySelectorAll('.row-denom-inp').forEach(i => { 
+                denomsObj['d' + i.dataset.d] = Number(i.value || 0); 
+            });
+        }
+        state.dests.push({ type, account: type === 'Cash' ? 'Cash' : account, amount: val, denoms: denomsObj });
     }
   });
   
   return state;
 }
 
-function validateCash() {
-  const hasCash = [...document.querySelectorAll('.type-sel')].some(s => s.value === 'Cash');
-  const cb = getEl("cashBox");
-  if (!hasCash) { cb.classList.remove("invalid-cash"); return true; }
-  let denomTotal = 0, expectedCash = 0;
-  document.querySelectorAll(".denom-inp").forEach(i => denomTotal += Number(i.dataset.d) * Number(i.value || 0));
-  document.querySelectorAll('.mode-row').forEach(row => { if(row.querySelector('.type-sel').value === 'Cash') expectedCash += Number(row.querySelector('.amt-input').value || 0); });
-  const isInvalid = (denomTotal <= 0) || (denomTotal.toFixed(2) !== expectedCash.toFixed(2));
-  if (isInvalid) cb.classList.add("invalid-cash"); else cb.classList.remove("invalid-cash");
-  return !isInvalid;
+
+function validateCashRows() {
+  let isValid = true;
+  document.querySelectorAll('.mode-block').forEach(row => {
+    const typeSel = row.querySelector('.type-sel');
+    if (typeSel.value === 'Cash') {
+      const rowId = row.id.replace('row-', '');
+      const denomSection = getEl(`row-denom-${rowId}`);
+      let denomTotal = 0;
+      if (denomSection) {
+        denomSection.querySelectorAll('.row-denom-inp').forEach(i => {
+          denomTotal += Number(i.dataset.d) * Number(i.value || 0);
+        });
+      }
+      const amt = Number(row.querySelector('.amt-input').value || 0);
+      if (denomTotal <= 0 || denomTotal.toFixed(2) !== amt.toFixed(2)) {
+        row.style.border = "2px solid var(--danger)";
+        isValid = false;
+      } else {
+        row.style.border = "none";
+      }
+    } else {
+      row.style.border = "none";
+    }
+  });
+  return isValid;
 }
 
-// ==== Compare Matrix builder for Edit ====
 function buildCompareHtml(oldSt, newSt) {
     let html = `<div class="col-header left">Existing</div><div class="col-header center">Field</div><div class="col-header right">New</div>`;
 
@@ -1224,12 +1328,11 @@ function buildCompareHtml(oldSt, newSt) {
     return fullHtml;
 }
 
-// ==== SUBMIT ACTION ====
 selfForm.onsubmit = async e => {
   e.preventDefault();
   selfForm.classList.add("was-validated");
-  if (!selfForm.checkValidity() || !validateCash()) {
-    const firstError = document.querySelector(':invalid, .invalid-cash');
+  if (!selfForm.checkValidity() || !validateCashRows()) {
+    const firstError = document.querySelector(':invalid');
     if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
@@ -1237,11 +1340,9 @@ selfForm.onsubmit = async e => {
   const newState = buildFormState();
   if (newState.sources.length === 0 && newState.dests.length === 0) { showToast("Please enter transaction amounts.", "var(--danger)"); return; }
 
-  // Save for repeat
   localStorage.setItem("lastTransferState", JSON.stringify(newState));
 
   if (_editingRefId !== null) {
-      // Editing Flow
       if (isStateEqual(_oldFormState, newState)) { 
           showToast("No changes detected", "#f59e0b"); 
           return; 
@@ -1253,7 +1354,6 @@ selfForm.onsubmit = async e => {
       return;
   }
 
-  // Normal flow
   generateSubmitPreview(newState);
   if (batchToggle.checked || !navigator.onLine) { saveBatchToDB(newState); return; }
   confirmModal.classList.remove("hidden");
@@ -1266,12 +1366,12 @@ function generateSubmitPreview(state) {
     state.sources.forEach((s, idx) => {
         outTotal += s.amount;
         sourceHtml += `
-        <div class="mode-block">
-            <div class="confirm-item" style="border-bottom: 1px dashed var(--border-color); padding-top: 0;">
+        <div class="confirm-item" style="border-bottom: 1px dashed var(--border-color); padding-top: 0; display:flex; flex-direction:column; align-items:flex-start;">
+            <div style="display:flex; justify-content:space-between; width:100%;">
                 <span class="confirm-label">Account / Mode ${idx + 1}</span>
                 <span class="confirm-val" style="color:var(--danger); font-weight:600;">${s.account} (${s.type})</span>
             </div>
-            <div class="confirm-item" style="border-bottom: none; padding-bottom: 0;">
+            <div style="display:flex; justify-content:space-between; width:100%; margin-top:4px;">
                 <span class="confirm-label">Amount</span>
                 <span class="confirm-val" style="font-size: 14px; font-weight: bold; color: var(--text-main);">₹${s.amount.toFixed(2)}</span>
             </div>
@@ -1281,12 +1381,12 @@ function generateSubmitPreview(state) {
     state.dests.forEach((d, idx) => {
         inTotal += d.amount;
         destHtml += `
-        <div class="mode-block">
-            <div class="confirm-item" style="border-bottom: 1px dashed var(--border-color); padding-top: 0;">
+        <div class="confirm-item" style="border-bottom: 1px dashed var(--border-color); padding-top: 0; display:flex; flex-direction:column; align-items:flex-start;">
+            <div style="display:flex; justify-content:space-between; width:100%;">
                 <span class="confirm-label">Account / Mode ${idx + 1}</span>
                 <span class="confirm-val" style="color:var(--secondary); font-weight:600;">${d.account} (${d.type})</span>
             </div>
-            <div class="confirm-item" style="border-bottom: none; padding-bottom: 0;">
+            <div style="display:flex; justify-content:space-between; width:100%; margin-top:4px;">
                 <span class="confirm-label">Amount</span>
                 <span class="confirm-val" style="font-size: 14px; font-weight: bold; color: var(--text-main);">₹${d.amount.toFixed(2)}</span>
             </div>
@@ -1310,7 +1410,6 @@ function generateSubmitPreview(state) {
     `;
 }
 
-// ==== EDIT SAVE ACTIONS ====
 getEl('btnConfirmEditSave').onclick = async () => {
     if(!_editingRefId || !_newFormState) return;
     getEl('editCompareModal').classList.add('hidden');
@@ -1318,12 +1417,10 @@ getEl('btnConfirmEditSave').onclick = async () => {
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true; submitBtn.textContent = "Updating...";
     
-    // 1. Delete Old
     try {
         await fetch(`${DELETE_URL}?action=delete&value=${encodeURIComponent(_editingRefId)}`, { mode: "no-cors" });
     } catch(e) { console.warn("Delete old failed locally, proceeding to append"); }
     
-    // 2. Submit New
     generateSubmitPreview(_newFormState);
     await executeSubmit(_newFormState);
     
@@ -1337,7 +1434,6 @@ getEl('btnCancelEditSave').onclick = () => {
     _newFormState = null; showToast("Edit cancelled");
 };
 
-// ==== DB & QUEUE SAVE ====
 function convertStateToRows(state) {
     const rows = [];
     state.sources.forEach(s => rows.push({ date: state.date, narration: state.narration + " (From)", refid: state.reference, type: s.type, account: s.account, amount: s.amount, denoms: s.denoms }));
@@ -1370,7 +1466,6 @@ async function executeSubmit(overrideState = null) {
     showToast(`Success! Linked with Ref: ${state.reference}`);
     resetForm();
     
-    // Refresh logger locally if it was today
     if (state.date === dateInp.value) { fetchLogsForDate(state.date); }
   } catch (err) { 
       saveBatchToDB(state); 
@@ -1383,11 +1478,8 @@ function resetForm() {
   const bState = batchToggle.checked;
   selfForm.reset();
   selfForm.classList.remove("was-validated");
-  cashBox.classList.add("hidden");
   dateInp.value = getTodayIST();
   setRefPlaceholder();
-  document.querySelectorAll(".denom-inp").forEach(i => i.value = "");
-  cashBox.classList.remove("invalid-cash");
   batchToggle.checked = bState;
   sourceContainer.innerHTML = ""; destContainer.innerHTML = "";
   addMode('source'); addMode('dest');
@@ -1396,12 +1488,6 @@ function resetForm() {
   fetchLogsForDate(dateInp.value);
 }
 
-function checkCashVisibility() {
-  const anyCashSelected = [...document.querySelectorAll('.type-sel')].some(sel => sel.value === "Cash");
-  cashBox.classList.toggle("hidden", !anyCashSelected);
-}
-
-// ==== Edit Action (Populate Form) ====
 window.editDailyTxn = function(refId) {
     const data = getDailyTxns();
     const txn = data.txns.find(t => t.id === refId);
@@ -1413,7 +1499,6 @@ window.editDailyTxn = function(refId) {
     
     sourceContainer.innerHTML = ""; destContainer.innerHTML = "";
     
-    // Process Date back to strict YYYY-MM-DD for the input field to accept it natively
     try {
         const d = new Date(txn.formState.date);
         const yyyy = d.getFullYear();
@@ -1421,7 +1506,7 @@ window.editDailyTxn = function(refId) {
         const dd = String(d.getDate()).padStart(2, '0');
         dateInp.value = `${yyyy}-${mm}-${dd}`;
     } catch(e) {
-        dateInp.value = txn.formState.date; // Fallback
+        dateInp.value = txn.formState.date;
     }
     fetchLogsForDate(dateInp.value);
     
@@ -1431,25 +1516,10 @@ window.editDailyTxn = function(refId) {
     txn.formState.sources.forEach(s => addMode('source', s));
     txn.formState.dests.forEach(d => addMode('dest', d));
     
-    // If cash exists in any, populate the master denoms
-    document.querySelectorAll(".denom-inp").forEach(i => i.value = "");
-    const allRows = [...txn.formState.sources, ...txn.formState.dests];
-    allRows.forEach(r => {
-        if(r.type === 'Cash' && r.denoms) {
-            Object.keys(r.denoms).forEach(dKey => {
-                const inp = document.querySelector(`.denom-inp[data-d="${dKey}"]`);
-                if(inp && r.denoms[dKey]) inp.value = r.denoms[dKey];
-            });
-        }
-    });
-    
-    calcCash();
-    checkCashVisibility();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     showToast("✏️ Editing Transfer: " + refId);
 };
 
-// ==== Queue Rendering ====
 function renderQueueTable(items) {
   queueTableBody.innerHTML = items.length ? "" : "<tr><td colspan='6'>Queue is empty</td></tr>";
   items.forEach(item => {
@@ -1472,7 +1542,14 @@ function renderQueueTable(items) {
   });
 }
 
-window.deleteQueueItem = id => { if(confirm("Delete?")) db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = updatePendingCount; };
+window.deleteQueueItem = id => { 
+    showConfirmToast("Delete pending queue item?", () => {
+        db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = () => {
+            updatePendingCount();
+            showToast("🗑️ Queue item deleted");
+        };
+    });
+};
 
 window.editQueueItem = id => { 
     db.transaction("transferQueue","readonly").objectStore("transferQueue").get(id).onsuccess = e => { 
@@ -1496,15 +1573,6 @@ window.editQueueItem = id => {
         const side = item.narration.includes("(From)") ? 'source' : 'dest';
         addMode(side, item);
         
-        if (item.type === 'Cash' && item.denoms) {
-             Object.keys(item.denoms).forEach(dKey => {
-                const inp = document.querySelector(`.denom-inp[data-d="${dKey}"]`);
-                if(inp) inp.value = item.denoms[dKey];
-            });
-        }
-        calcCash();
-        checkCashVisibility();
-        
         db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = () => { queueModal.classList.add("hidden"); updatePendingCount(); }; 
     }; 
 };
@@ -1519,17 +1587,7 @@ getEl("btnRepeat").onclick = () => {
     
     last.sources.forEach(s => addMode('source', s));
     last.dests.forEach(d => addMode('dest', d));
-    
-    const allRows = [...last.sources, ...last.dests];
-    allRows.forEach(r => {
-        if(r.type === 'Cash' && r.denoms) {
-            Object.keys(r.denoms).forEach(dKey => {
-                const inp = document.querySelector(`.denom-inp[data-d="${dKey}"]`);
-                if(inp && r.denoms[dKey]) inp.value = r.denoms[dKey];
-            });
-        }
-    });
-    calcCash(); checkCashVisibility();
+    showToast("Repeated last transfer configuration");
 };
 
 getEl("btnConfirmFinal").onclick = () => executeSubmit(); 
@@ -1537,28 +1595,24 @@ getEl("btnConfirmCancel").onclick = () => confirmModal.classList.add("hidden");
 btnViewQueue.onclick = () => queueModal.classList.remove("hidden"); 
 
 btnSyncAll.onclick = () => { 
-    if(confirm("Sync all?")){ 
-        syncAborted=false; btnSyncAll.classList.add("hidden"); btnStopSync.classList.remove("hidden"); 
-        db.transaction("transferQueue").objectStore("transferQueue").getAll().onsuccess = async e => { 
-            const items = e.target.result; 
-            for(let i=0; i<items.length && !syncAborted; i++){ 
-                btnStopSync.textContent=`🛑 Stop (${i+1}/${items.length})`; 
-                try { 
-                    await fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:JSON.stringify(items[i])}); 
-                    await new Promise(res => db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(items[i].id).onsuccess = res);
-                } catch(e) { break; } 
-            } 
-            updatePendingCount();
-            btnStopSync.classList.add("hidden"); btnSyncAll.classList.remove("hidden"); btnStopSync.textContent="🛑 Stop Syncing"; 
-            showToast("Sync process finished.");
-        }; 
-    } 
+    syncAborted=false; btnSyncAll.classList.add("hidden"); btnStopSync.classList.remove("hidden"); 
+    db.transaction("transferQueue").objectStore("transferQueue").getAll().onsuccess = async e => { 
+        const items = e.target.result; 
+        for(let i=0; i<items.length && !syncAborted; i++){ 
+            btnStopSync.textContent=`🛑 Stop (${i+1}/${items.length})`; 
+            try { 
+                await fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:JSON.stringify(items[i])}); 
+                await new Promise(res => db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(items[i].id).onsuccess = res);
+            } catch(e) { break; } 
+        } 
+        updatePendingCount();
+        btnStopSync.classList.add("hidden"); btnSyncAll.classList.remove("hidden"); btnStopSync.textContent="🛑 Stop Syncing"; 
+        showToast("Sync process finished.");
+    }; 
 };
-btnStopSync.onclick = () => { syncAborted = true; };
+btnStopSync.onclick = () => { syncAborted = true; showToast("Sync aborted", "#f59e0b"); };
 
-// Fetch initial logs for today on load
 fetchLogsForDate(dateInp.value);
-
 </script>
 <script>
   if ('serviceWorker' in navigator) {
