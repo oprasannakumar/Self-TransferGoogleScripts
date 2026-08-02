@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,12 +8,13 @@
   <meta name="theme-color" content="#ffffff">
   <link rel="apple-touch-icon" href="icon-192.png">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     :root { 
+      * { -webkit-tap-highlight-color: transparent; }
       --primary:#2563eb; 
       --primary-hover:#1e40af; 
       --secondary: #10b981;
@@ -51,14 +53,11 @@
       transition: background 0.5s ease, border-color 0.5s ease;
     }
 
-    /* Standard Validation: Red Borders */
     .was-validated input:invalid, 
     .was-validated select:invalid {
       border: 1.5px solid var(--danger) !important;
       background-color: rgba(239, 68, 68, 0.03);
     }
-
-    /* Cash Box External Border Highlight */
     .was-validated #cashBox.invalid-cash {
       border: 2px solid var(--danger) !important;
       background-color: rgba(239, 68, 68, 0.05);
@@ -68,50 +67,31 @@
     .confirm-card { 
       background: var(--bg-card); 
       max-width: 550px; 
-      width: 95%; /* Better fit for mobile devices */
+      width: 95%; 
       margin: auto; 
       padding: 22px; 
       border-radius: 16px; 
-      box-shadow: 0 18px 40px rgba(0,0,0,.08);
+      box-shadow: 0 18px 40px rgba(0,0,0,.15);
       border: 1px solid var(--border-color); 
-      position: relative; 
-      transition: background 0.5s ease;
       display: flex;
       flex-direction: column;
-      max-height: 70vh; /* Keeps the card within the visible screen area */
+      max-height: 85vh; 
+      transform: scale(1) translateY(0); 
+      transition: transform 0.25s cubic-bezier(0.175,0.885,0.32,1.275);
     }
-    #confirmDetails {
-      overflow-y: auto;
-      padding-right: 8px;
-      margin-bottom: 15px;
-      flex-grow: 1; /* Allows this section to fill available space */
-    }
+    
+    #confirmDetails, #dailyTxnDetailsContent { overflow-y: auto; padding-right: 8px; margin-bottom: 15px; flex-grow: 1; }
+    #confirmDetails::-webkit-scrollbar, #dailyTxnDetailsContent::-webkit-scrollbar { width: 4px; }
+    #confirmDetails::-webkit-scrollbar-thumb, #dailyTxnDetailsContent::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
 
-    /* Scrollbar styling for a cleaner look */
-    #confirmDetails::-webkit-scrollbar {
-      width: 4px;
-    }
-    #confirmDetails::-webkit-scrollbar-thumb {
-      background: var(--border-color);
-      border-radius: 10px;
-    }
-
-    .header-row-top {
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 20px; position: relative; min-height: 32px;margin-top: -10px;
-    }
-
+    .header-row-top { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; position: relative; min-height: 32px; margin-top: -10px; }
     h2 { margin: 0; font-weight: 600; color: var(--text-main); font-size: 20px; text-align: center; }
 
-    #statusDot { 
-      position: absolute; left: 0; width: 12px; height: 12px; 
-      border-radius: 50%; background: #94a3b8; transition: 0.3s;
-    }
+    #statusDot { position: absolute; left: 0; width: 12px; height: 12px; border-radius: 50%; background: #94a3b8; transition: 0.3s; }
     #statusDot.online { background: #10b981; box-shadow: 0 0 10px #10b981; }
     #statusDot.offline { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
 
     .header-actions { position: absolute; right: 0; display: flex; gap: 8px; align-items: center; }
-
     #themeToggle, #fabToggle { 
       width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-color); 
       background: var(--bg-input); color: var(--text-main); cursor: pointer; 
@@ -119,6 +99,46 @@
       font-size: 14px; padding: 0; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0;
     }
     .theme-rotate { transform: rotate(360deg); }
+
+    /* DASHBOARD DRAGGABLE BALL */
+    #dragDashBall {
+      position: fixed; right: 0px; top: 180px; z-index: 9999;
+      background: var(--bg-card); border: 1px solid var(--border-color); border-right: none;
+      border-radius: 24px 0 0 24px; padding: 8px 12px 8px 10px;
+      box-shadow: -3px 4px 15px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 6px;
+      cursor: grab; user-select: none; touch-action: none; transition: background 0.3s ease;
+    }
+    #dragDashBall:active { cursor: grabbing; transform: scale(0.96); }
+    .ball-icon { font-size: 16px; line-height: 1; }
+    .ball-text { display: flex; flex-direction: column; font-size: 10px; font-weight: 700; line-height: 1.1; }
+    .ball-out { color: var(--danger); }
+    .ball-in { color: var(--secondary); }
+
+    /* SWIPEABLE DAILY TXN ROW */
+    .daily-txn-container { position: relative; overflow: hidden; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border-color); background: var(--bg-card); }
+    .daily-txn-actions { position: absolute; right: 0; top: 0; bottom: 0; display: flex; width: 120px; z-index: 0; }
+    .action-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; background: transparent; transition: transform 0.2s; }
+    .action-btn:hover { transform: scale(1.15); }
+    .daily-txn-content { position: relative; background: var(--bg-card); z-index: 1; display: flex; flex-direction: column; padding: 12px; touch-action: pan-y; cursor: pointer; transition: transform 0.25s ease; border-radius: 12px; }
+
+    /* EDIT COMPARE MATRIX */
+    .edit-compare-grid {
+      display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px 4px; align-items: center;
+      max-height: 60vh; overflow-y: auto; font-size: 13px; margin-bottom: 15px; padding: 5px;
+    }
+    .edit-compare-grid .col-header { font-weight: 700; padding-bottom: 4px; text-align: center; }
+    .edit-compare-grid .col-header.left { color: #f87171; }
+    .edit-compare-grid .col-header.center { color: var(--text-main); }
+    .edit-compare-grid .col-header.right { color: #22c55e; }
+    .edit-compare-grid .val-box { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-label); text-align: center; font-weight: 500; word-break: break-word; }
+    .edit-compare-grid .val-box.old-diff { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.3); color: #ef4444; }
+    .edit-compare-grid .val-box.new-diff { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: #22c55e; }
+    .edit-compare-grid .field-label { font-weight: 700; color: var(--text-main); white-space: nowrap; text-align: center; }
+    .edit-compare-grid .diff-heading { grid-column: 1 / -1; display: flex; align-items: center; color: var(--primary); font-weight: 700; margin-top: 10px; text-align: center; font-size: 13px; }
+    .edit-compare-grid .diff-heading::before, .edit-compare-grid .diff-heading::after { content: ''; flex: 1; border-bottom: 1px dashed var(--border-color); }
+    .edit-compare-grid .diff-heading::before { margin-right: 15px; }
+    .edit-compare-grid .diff-heading::after { margin-left: 15px; }
+
     .nav-fab-container { position: relative; }
     .nav-options { 
       position: absolute; right: 0; top: 40px; display: flex; flex-direction: column; 
@@ -143,7 +163,7 @@
     input:checked + .slider:before { transform: translateX(18px); }
 
     h3 { margin: 18px 0 8px; font-size: 14px; color: #22c55e; text-transform: uppercase; letter-spacing: 0.05em; }
-    h2 { margin: 18px 0 8px; font-size: 14px; color: #22c55e; text-transform: uppercase; letter-spacing: 0.05em; }
+    h2.sec-title { margin: 18px 0 8px; font-size: 14px; color: #22c55e; text-transform: uppercase; letter-spacing: 0.05em; }
     label { font-size: 13px; font-weight: 600; margin-top: 14px; display: block; color: var(--text-label); }
 
     input, select, button {
@@ -151,42 +171,16 @@
       border-radius: 10px; border: 1px solid var(--border-color); font-size: 14px; box-sizing: border-box;
       background: var(--bg-input); color: var(--text-main); transition: all 0.3s ease;
     }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-    .mode-row {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 12px;
-      cursor: grab;
-    }
-
-    .other-acc-input {
-      margin-top: 4px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .mode-row-content:active {
-      cursor: grabbing;
-    }
-    .mode-row-content {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      padding: 0 8px;
-      height: var(--btn-h);
-      background: var(--bg-card);
-      transition: transform 0.25s ease;
-      position: relative;
-      z-index: 2;
-      cursor: grab;
-      user-select: none;
-    }
-    .swipe-wrapper {
-      touch-action: pan-y;
-    }
-    input:focus, select:focus { 
-      outline: none; 
-      border-color:#2563eb; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
+    .mode-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .other-acc-input { margin-top: 4px; width: 100%; box-sizing: border-box; }
+    .mode-row-content { display: flex; gap: 8px; align-items: center; padding: 0 8px; height: var(--btn-h); background: var(--bg-card); transition: transform 0.25s ease; position: relative; z-index: 2; cursor: grab; user-select: none; }
+    .mode-row-content:active { cursor: grabbing; }
+    .swipe-wrapper { touch-action: pan-y; }
+    
+    input:focus, select:focus { outline: none; border-color:#2563eb; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
 
     .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
 
@@ -194,13 +188,11 @@
       height: var(--btn-h); font-weight: 600; border-radius: 10px; font-size: 14px; 
       cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; padding: 0 10px;
     }
-
     #submitBtn, .btn-confirm { background: var(--primary); color: #fff; border: none; }
     #btnRepeat, .btn-cancel { background: var(--bg-input); color: var(--text-main); border: 1.5px solid var(--border-color); }
     #btnStopSync { border: 1.5px solid #ef4444; background-color: white; color: #ef4444; }
-    label + input {
-      margin-bottom: 6px;
-    }
+    
+    label + input { margin-bottom: 6px; }
     hr { border: none; border-top: 1px dashed var(--border-color); margin: 12px 0; }
     .hidden { display: none !important; }
 
@@ -215,23 +207,16 @@
     #btnViewQueue { background: #94a3b8; color: white; border: none; }
 
     .modal { 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%; 
-      background: rgba(0,0,0,0.7); 
-      backdrop-filter: blur(4px); 
-      z-index: 1000; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      padding: 20px; 
-      box-sizing: border-box; 
-      overflow-y: auto; 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); 
+      z-index: 1000; display: flex; justify-content: center; align-items: center; 
+      padding: 20px; box-sizing: border-box; overflow-y: auto; 
+      opacity: 1; visibility: visible; transition: opacity 0.25s ease, visibility 0.25s ease;
     }
+    .modal.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    .modal.hidden .confirm-card, .modal.hidden .modal-content { transform: scale(0.95) translateY(10px); }
 
-    .modal-content { background: var(--bg-card); color: var(--text-main); width: 95%; max-width: 850px; max-height: 85vh; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-color); }
+    .modal-content { background: var(--bg-card); color: var(--text-main); width: 95%; max-width: 850px; max-height: 85vh; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-color); transform: scale(1) translateY(0); transition: transform 0.25s cubic-bezier(0.175,0.885,0.32,1.275); }
     
     .confirm-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 13px; }
     .confirm-label { font-weight: 600; color: var(--text-label); }
@@ -243,72 +228,53 @@
     th { text-align: center; padding: 8px; border-bottom: 2px solid var(--border-color); color: var(--text-label); }
     td { padding: 10px 5px; border-bottom: 1px solid var(--border-color); vertical-align: middle; text-align: center; color: var(--text-main); }
 
-    .action-btn { border: none; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 0 4px; }
+    .action-btn-sm { border: none; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 0 4px; }
     .btn-del-mini { background: #fee2e2; color: #ef4444; }
     .btn-edit-mini { background: #e0e7ff; color: #4338ca; }
-
     .queue-denoms { font-size: 9.5px; color: #2563eb; font-family: monospace; display: block; line-height: 1.2; margin-top: 4px; opacity: 0.8; word-wrap: break-word; }
 
-    .modal-header { 
-      display: flex; justify-content: space-between; align-items: center; 
-      border-bottom: 1px solid var(--border-color); padding: 15px 20px; background: var(--bg-card);
-    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 15px 20px; background: var(--bg-card); }
     .close-modal { font-size: 28px; font-weight: bold; cursor: pointer; color: var(--text-label); line-height: 1; padding: 5px; }
-    .transfer-box {
-      background: var(--bg-input);
-      padding: 14px;
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-      margin-bottom: 18px;
-    }
-    .balance-box {
-      background: var(--bg-input);
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-      margin-top: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      font-size: 13px;
-    }
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 0px 0 6px;
-    }
-    form {
-      overflow-x: hidden;
-    }
-    .section-header h3 {
-      margin: 12px;
-    }
-    .section-header h2 {
-      margin: 0;
-    }
-    .swipe-wrapper {
-      width: 100%;
-      position: relative;
-    }
-    .btn-add-mode {
-      width: auto;
-      height: 28px;
-      font-size: 11px;
-      border-radius: 8px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--secondary);
-      color: white;
-      border: none;
-      cursor: pointer;
-      padding: 0 12px;
-    }
+    
+    .balance-box { background: var(--bg-input); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); margin-top: 15px; display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin: 0px 0 6px; }
+    .section-header h3, .section-header h2.sec-title { margin: 12px; }
+    
+    .btn-add-mode { width: auto; height: 28px; font-size: 11px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--secondary); color: white; border: none; cursor: pointer; padding: 0 12px; margin:0;}
     .btn-add-mode:hover { opacity: 0.9; }
+
+    #toast {
+      position:fixed; bottom:40px; left:50%; transform:translate(-50%,40px) scale(0.95);
+      background:var(--primary); color:white; padding:12px 20px; border-radius:14px;
+      font-size:14px; font-weight:600; box-shadow:0 10px 30px rgba(0,0,0,0.25);
+      z-index:20000; text-align:center; opacity:0; pointer-events:none;
+      transition:transform 0.35s cubic-bezier(.22,1,.36,1),opacity 0.35s ease;
+    }
+    #toast.show { opacity:1; transform:translate(-50%,0) scale(1); }
+
+    /* Mode Block Styles */
+    .mode-block {
+      background: var(--bg-body);
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border: 1px solid var(--border-color);
+    }
+    .mode-block .confirm-item {
+      padding: 6px 0;
+    }
   </style>
 </head>
 <body>
+
+<!-- SIDEWALL DRAGGABLE BALL -->
+<div id="dragDashBall" title="Drag vertically. Tap to view selected date's log">
+    <span class="ball-icon">📊</span>
+    <div class="ball-text">
+        <span class="ball-out" id="ballOutVal">-₹0</span>
+        <span class="ball-in" id="ballInVal">+₹0</span>
+    </div>
+</div>
 
 <form id="form" novalidate>
   <div class="header-row-top">
@@ -335,47 +301,49 @@
     </label>
   </div>
 
-  <label>Date</label>
-  <input type="date" id="date" required>
+  <div class="grid-2">
+      <div>
+        <label style="margin-top:0;">Date</label>
+        <input type="date" id="date" required>
+      </div>
+      <div>
+        <label style="margin-top:0;">Reference</label>
+        <input type="text" id="reference" placeholder="">
+      </div>
+  </div>
 
   <label>Narration</label>
   <input type="text" id="narration" required placeholder="What is this transfer for?">
 
   <hr>
-<div class="section-header">
-  <h3>From (Sources)</h3>
-  <button type="button" class="btn-add-mode" onclick="addMode('source')">
-    + Add
-  </button>
-</div>
-<div id="sourceContainer"></div>
-
-<hr>
-
-<div class="section-header">
-  <h3>To (Destinations)</h3>
-  <button type="button" class="btn-add-mode" onclick="addMode('dest')">
-    + Add
-  </button>
-</div>
-<div id="destContainer"></div>
-<hr>
-
-<div id="balanceSummary" class="balance-box">
   <div class="section-header">
-  <h2>Balance Summary</h2>
+    <h3>From (Sources)</h3>
+    <button type="button" class="btn-add-mode" onclick="addMode('source')">+ Add</button>
   </div>
-  <div>Total Out: <span id="totalOut">₹0.00</span></div>
-  <div>Total In: <span id="totalIn">₹0.00</span></div>
-  <div id="balanceDiff" style="font-weight:bold;">Difference: ₹0.00</div>
-</div>
+  <div id="sourceContainer"></div>
 
-<div id="cashBox" class="hidden">
-  <label style="color: var(--primary); margin-bottom: 10px;">Cash Denominations</label>
-  <div id="denominations"></div>
-</div>
+  <hr>
+  <div class="section-header">
+    <h3>To (Destinations)</h3>
+    <button type="button" class="btn-add-mode" onclick="addMode('dest')">+ Add</button>
+  </div>
+  <div id="destContainer"></div>
+  <hr>
 
-  
+  <div id="balanceSummary" class="balance-box">
+    <div class="section-header">
+    <h2 class="sec-title">Balance Summary</h2>
+    </div>
+    <div>Total Out: <span id="totalOut">₹0.00</span></div>
+    <div>Total In: <span id="totalIn">₹0.00</span></div>
+    <div id="balanceDiff" style="font-weight:bold;">Difference: ₹0.00</div>
+  </div>
+
+  <div id="cashBox" class="hidden">
+    <label style="color: var(--primary); margin-bottom: 10px;">Cash Denominations</label>
+    <div id="denominations"></div>
+  </div>
+
   <div class="btn-group">
     <button type="submit" id="submitBtn">Submit Transfer</button>
     <button type="button" id="btnRepeat">↺ Repeat Last</button>
@@ -393,6 +361,7 @@
   </div>
 </form>
 
+<!-- Confirm Modal (Submit) -->
 <div id="confirmModal" class="modal hidden">
   <div class="confirm-card">
     <h2 style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; font-size: 18px;">Confirm Details</h2>
@@ -404,6 +373,42 @@
   </div>
 </div>
 
+<!-- Edit Compare Modal -->
+<div id="editCompareModal" class="modal hidden">
+    <div class="confirm-card" style="max-width: 95%; width: 550px; padding: 25px 15px;">
+        <h3 style="margin-bottom: 5px; font-size: 18px; text-align: center;">Confirm Edit Changes</h3>
+        <p style="text-align: center; font-size: 12px; color: var(--text-label); margin-top: 0; margin-bottom: 20px;">Review differences before saving. The old transaction will be overwritten.</p>
+        <div id="editCompareGrid" class="edit-compare-grid"></div>
+        <div class="btn-group" style="margin-top: 15px;">
+            <button type="button" id="btnConfirmEditSave" class="btn-confirm">✔ Save Updated</button>
+            <button type="button" id="btnCancelEditSave" class="btn-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Daily Transactions Log Modal -->
+<div id="todayTxnModal" class="modal hidden" style="background:transparent; backdrop-filter:none; pointer-events:none;">
+    <div class="confirm-card" style="max-width:95%; width:450px; padding:18px; pointer-events:auto; box-shadow:0 15px 40px rgba(0,0,0,0.25);">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:10px; margin-bottom:12px;">
+            <h3 id="dailyLogTitle" style="margin:0; font-size:15px; color:var(--primary);">Selected Date Transfers</h3>
+            <span style="cursor:pointer; font-size:18px; font-weight:bold;" onclick="document.getElementById('todayTxnModal').classList.add('hidden')">&times;</span>
+        </div>
+        <div id="todayTxnList" style="max-height:65vh; overflow-y:auto; font-size:12px; padding-right:5px; overflow-x:hidden;"></div>
+    </div>
+</div>
+
+<!-- Transaction Details Modal -->
+<div id="dailyTxnDetailsModal" class="modal hidden">
+    <div class="confirm-card" style="max-width:90%; width:450px; padding:20px;">
+        <h3 style="margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:10px; font-size:15px;">Transaction Details</h3>
+        <div id="dailyTxnDetailsContent" style="font-size:13px; max-height:75vh; overflow-y:auto; padding-right:5px;"></div>
+        <div class="btn-group" style="margin-top:15px;">
+            <button type="button" class="btn-cancel" style="grid-column:1 / -1;" onclick="document.getElementById('dailyTxnDetailsModal').classList.add('hidden')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Queue Modal -->
 <div id="queueModal" class="modal hidden">
   <div class="modal-content">
     <div class="modal-header">
@@ -428,10 +433,17 @@
   </div>
 </div>
 
+<div id="toast" class="hidden"></div>
+
 <script>
+// Backend Endpoints
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyW755SytjdG7e_qqlgkhHfFmdUvqr5SQv66B6yHF41Z0qeeuWuH3XdCzeEsMtbZwrKOA/exec";
-let isSubmitting = false, syncAborted = false, currentPayload = null, db;
-let currentBatchRef = "";
+const DELETE_URL = "https://script.google.com/macros/s/AKfycbz5jwjriTJB2rqI7G66VmtdLTBGR0tQ4j_2iRKDubEERdR-pHI-Sg5OiORQxqgXsg_G/exec"; // Used for deleting edits
+
+let isSubmitting = false, syncAborted = false, db;
+let _editingRefId = null; 
+let _oldFormState = null;
+let _newFormState = null;
 
 const bankAccounts=["FI","HDFC Old","HDFC New","ICICI","IndusInd","Kotak","RBL","SBI"];
 const creditCards=["Axis Flipkart","Axis MyZone","Axis Neo","HDFC PhonePe","HDFC Tata Neu","HDFC Millennia","HSBC","IDFC First Millenia","ICICI Amazon","ICICI Coral","ICICI Expressions","Indusind Plat Aura EDGE","Indusind Legend","Yes Finbooster","Kotak League","Kotak Image","SBI BPCL","Standard Chartered"];
@@ -439,27 +451,96 @@ const rewardPlatforms=["Amazon", "Flipkart", "Supermoney", "Payzapp", "MobiKwik"
 const denoms=[500,200,100,50,20,10,5,2,1];
 
 const getEl = id => document.getElementById(id);
+
+// Ensure the format strictly outputs as dd-MMM-yyyy
 const formatDisplayDate = dStr => {
+  if(!dStr) return "";
   const d = new Date(dStr);
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
+  return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${d.getFullYear()}`; // dd-MMM-yyyy
 };
 
-const selfForm = getEl("form"), 
-      date = getEl("date"), 
-      narration = getEl("narration"), 
-      cashBox = getEl("cashBox"), 
-      denDiv = getEl("denominations"), 
-      submitBtn = getEl("submitBtn"), 
-      batchToggle = getEl("batchToggle"),
-      sourceContainer = getEl("sourceContainer"),
-      destContainer = getEl("destContainer");
+const parseToStrictDate = d => {
+    try {
+        const dt = new Date(d);
+        return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+    } catch (e) {
+        return d;
+    }
+};
 
-const syncCountLabel = getEl("syncCount"), btnSyncAll = getEl("btnSyncAll"), btnStopSync = getEl("btnStopSync"), footerSync = getEl("footerSync"), btnViewQueue = getEl("btnViewQueue"), queueModal = getEl("queueModal"), queueTableBody = getEl("queueTableBody");
-const themeToggle = getEl("themeToggle"), statusDot = getEl("statusDot"), confirmModal = getEl("confirmModal"), confirmDetails = getEl("confirmDetails"), navFab = getEl('navFab'), fabBtn = getEl('fabToggle');
+// Deep compare function to prevent false positives when checking for "no changes"
+function isStateEqual(oldSt, newSt) {
+    if (parseToStrictDate(oldSt.date) !== parseToStrictDate(newSt.date)) return false;
+    if (String(oldSt.reference).trim() !== String(newSt.reference).trim()) return false;
+    if (String(oldSt.narration).trim() !== String(newSt.narration).trim()) return false;
+    
+    const compareArr = (a1, a2) => {
+        if ((a1 || []).length !== (a2 || []).length) return false;
+        for (let i = 0; i < (a1 || []).length; i++) {
+            if (a1[i].type !== a2[i].type) return false;
+            if (a1[i].account !== a2[i].account) return false;
+            if (Number(a1[i].amount || 0) !== Number(a2[i].amount || 0)) return false;
+            
+            if (a1[i].type === 'Cash') {
+                const d1 = a1[i].denoms || {};
+                const d2 = a2[i].denoms || {};
+                for (let d of denoms) {
+                    if (Number(d1[d] || 0) !== Number(d2[d] || 0)) return false;
+                }
+            }
+        }
+        return true;
+    };
+    
+    if (!compareArr(oldSt.sources, newSt.sources)) return false;
+    if (!compareArr(oldSt.dests, newSt.dests)) return false;
+    
+    return true;
+}
 
-date.value = new Date().toISOString().split("T")[0];
-denoms.forEach(d => { denDiv.innerHTML += `<div class="denom-card"><div class="denom-label">₹${d}</div><input type="number" data-d="${d}" min="0" placeholder="0"></div>`; });
+const showToast = (msg, color = "var(--primary)") => {
+    const toast = getEl("toast");
+    toast.textContent = msg;
+    toast.style.background = color;
+    toast.classList.remove("hidden");
+    requestAnimationFrame(() => toast.classList.add("show"));
+    setTimeout(() => { 
+        toast.classList.remove("show");
+        setTimeout(() => toast.classList.add("hidden"), 350); 
+    }, 2200);
+};
+
+// UI Elements
+const selfForm = getEl("form"), dateInp = getEl("date"), refInp = getEl("reference"), narration = getEl("narration"), 
+      cashBox = getEl("cashBox"), denDiv = getEl("denominations"), submitBtn = getEl("submitBtn"), 
+      batchToggle = getEl("batchToggle"), sourceContainer = getEl("sourceContainer"), destContainer = getEl("destContainer");
+
+const syncCountLabel = getEl("syncCount"), btnSyncAll = getEl("btnSyncAll"), btnStopSync = getEl("btnStopSync"), 
+      footerSync = getEl("footerSync"), btnViewQueue = getEl("btnViewQueue"), queueModal = getEl("queueModal"), queueTableBody = getEl("queueTableBody");
+
+const themeToggle = getEl("themeToggle"), statusDot = getEl("statusDot"), confirmModal = getEl("confirmModal"), 
+      confirmDetails = getEl("confirmDetails"), navFab = getEl('navFab'), fabBtn = getEl('fabToggle');
+
+// Init Logic
+const getTodayIST = () => {
+    const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const yyyy = d.getFullYear(), mm = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+};
+
+const setRefPlaceholder = () => {
+    const now = new Date();
+    const datePart = now.toISOString().split('T')[0].replace(/-/g, '');
+    const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+    refInp.placeholder = `REF-${datePart}-${randomPart}`;
+    refInp.value = "";
+};
+
+dateInp.value = getTodayIST();
+setRefPlaceholder();
+
+denoms.forEach(d => { denDiv.innerHTML += `<div class="denom-card"><div class="denom-label">₹${d}</div><input type="number" class="denom-inp" data-d="${d}" min="0" placeholder="0"></div>`; });
 
 fabBtn.onclick = e => { e.stopPropagation(); navFab.classList.toggle('active'); };
 document.addEventListener('click', () => navFab.classList.remove('active'));
@@ -467,19 +548,18 @@ document.addEventListener('click', () => navFab.classList.remove('active'));
 themeToggle.onclick = () => {
   themeToggle.classList.add('theme-rotate');
   const isDark = document.body.classList.toggle("dark");
+  localStorage.setItem("selfTransferTheme", isDark ? "dark" : "light");
   setTimeout(() => { themeToggle.textContent = isDark ? "☀️" : "🌙"; }, 250);
   setTimeout(() => themeToggle.classList.remove('theme-rotate'), 500);
 };
+if(localStorage.getItem("selfTransferTheme") === "dark") { document.body.classList.add("dark"); themeToggle.textContent = "☀️"; }
 
-function updateStatusDot() { 
-  statusDot.className = navigator.onLine ? 'online' : 'offline'; 
-}
-window.addEventListener('online', updateStatusDot); 
-window.addEventListener('offline', updateStatusDot);
+function updateStatusDot() { statusDot.className = navigator.onLine ? 'online' : 'offline'; }
+window.addEventListener('online', updateStatusDot); window.addEventListener('offline', updateStatusDot);
 updateStatusDot();
 
 (function initDB(){
-  const req = indexedDB.open("SelfTransferDB", 1);
+  const req = indexedDB.open("SelfTransferDB_V2", 1);
   req.onupgradeneeded = e => e.target.result.createObjectStore("transferQueue", { keyPath: "id", autoIncrement: true });
   req.onsuccess = e => { db = e.target.result; updatePendingCount(); };
 })();
@@ -495,15 +575,318 @@ async function updatePendingCount(){
   };
 }
 
-// ============== NEW NARRATION LISTENER ==============
+// ==== Daily Logger & Dashboard Logic ====
+dateInp.addEventListener('change', (e) => {
+    const selectedDate = e.target.value;
+    let data = { date: selectedDate, txns: [] };
+    localStorage.setItem('daily_transfers', JSON.stringify(data));
+    renderSessionDashboard();
+    getEl('dailyLogTitle').textContent = `Transfers for ${formatDisplayDate(selectedDate)}`;
+    fetchLogsForDate(selectedDate);
+});
+
+async function fetchLogsForDate(dateStr) {
+    getEl('ballOutVal').textContent = "↻"; getEl('ballInVal').textContent = "↻";
+    try {
+        const res = await fetch(`${SCRIPT_URL}?action=getTransactionsByDate&date=${dateStr}`);
+        const rows = await res.json();
+        
+        const groups = {};
+        rows.forEach(r => {
+            if(!groups[r.refid]) {
+                groups[r.refid] = {
+                    refid: r.refid, date: r.date, 
+                    narration: r.narration.replace(/ \(From\)| \(To\)/g, "").trim(),
+                    sources: [], dests: [], totalOut: 0, totalIn: 0
+                };
+            }
+            if(r.narration.includes("(From)")) {
+                groups[r.refid].sources.push(r);
+                groups[r.refid].totalOut += Number(r.amount || r.withdrawn || 0); 
+            } else {
+                groups[r.refid].dests.push(r);
+                groups[r.refid].totalIn += Number(r.amount || r.deposit || 0);
+            }
+        });
+        
+        const txns = Object.values(groups).map(g => {
+            return {
+                id: g.refid,
+                date: g.date,
+                narration: g.narration,
+                totalOut: g.totalOut,
+                totalIn: g.totalIn,
+                formState: {
+                    date: g.date,
+                    narration: g.narration,
+                    reference: g.refid,
+                    sources: g.sources.map(s => ({type: s.type, account: s.account, amount: s.amount||s.withdrawn, denoms: s.denominations||s.denoms||{}})),
+                    dests: g.dests.map(d => ({type: d.type, account: d.account, amount: d.amount||d.deposit, denoms: d.denominations||d.denoms||{}}))
+                }
+            };
+        });
+
+        localStorage.setItem('daily_transfers', JSON.stringify({ date: dateStr, txns: txns }));
+        renderSessionDashboard();
+        if (!getEl('todayTxnModal').classList.contains('hidden')) renderDailyTxnsModal();
+
+    } catch (err) {
+        console.error("Fetch Daily Logs Error:", err);
+        renderSessionDashboard();
+        showToast("Offline or fetch failed.", "var(--danger)");
+    }
+}
+
+function getDailyTxns() {
+    const selectedDate = dateInp.value || getTodayIST();
+    let data = JSON.parse(localStorage.getItem('daily_transfers') || '{"date":"","txns":[]}');
+    if (data.date !== selectedDate) {
+        data = { date: selectedDate, txns: [] };
+        localStorage.setItem('daily_transfers', JSON.stringify(data));
+    }
+    return data;
+}
+
+function renderSessionDashboard() {
+    const data = getDailyTxns();
+    let outT = 0, inT = 0;
+    data.txns.forEach(t => { outT += t.totalOut; inT += t.totalIn; });
+    getEl('ballOutVal').textContent = '-₹' + Math.round(outT).toLocaleString('en-IN');
+    getEl('ballInVal').textContent = '+₹' + Math.round(inT).toLocaleString('en-IN');
+}
+
+// Side Ball Drag Logic
+(function setupDraggableBall() {
+    const ball = getEl('dragDashBall');
+    let isDragging = false, startY = 0, initialTop = 180, hasMoved = false;
+
+    const onStart = (e) => {
+        isDragging = true; hasMoved = false;
+        startY = e.touches ? e.touches[0].clientY : e.clientY;
+        initialTop = ball.offsetTop;
+    };
+    const onMove = (e) => {
+        if (!isDragging) return;
+        const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+        const deltaY = currentY - startY;
+        if (Math.abs(deltaY) > 4) hasMoved = true;
+        let newTop = Math.max(10, Math.min(initialTop + deltaY, window.innerHeight - ball.offsetHeight - 10));
+        ball.style.top = newTop + 'px';
+    };
+    const onEnd = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        if (!hasMoved) {
+            renderDailyTxnsModal();
+            getEl('dailyLogTitle').textContent = `Transfers for ${formatDisplayDate(dateInp.value)}`;
+            getEl('todayTxnModal').classList.remove('hidden');
+        }
+    };
+
+    ball.addEventListener('touchstart', onStart, { passive: true });
+    window.addEventListener('touchmove', onMove, { passive: true });
+    window.addEventListener('touchend', onEnd);
+    ball.addEventListener('mousedown', onStart);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+})();
+
+function getDenomMatrixHtml(denomsObj) {
+    if(!denomsObj || Object.keys(denomsObj).length === 0) return "";
+    let matrixHtml = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; background: var(--bg-card); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);">`;
+    denoms.forEach(d => {
+      const count = parseInt(denomsObj[d] || 0);
+      const opacity = count > 0 ? "1" : "0.4";
+      const border = count > 0 ? "var(--primary)" : "var(--border-color)";
+      matrixHtml += `<div style="font-size: 10px; background: var(--bg-body); border: 1px solid ${border}; border-radius: 6px; padding: 4px 2px; text-align: center; opacity: ${opacity};"><div style="font-weight: bold;">₹${d}</div><div>${count}</div></div>`;
+    });
+    matrixHtml += `</div>`;
+    return matrixHtml;
+}
+
+// Transaction Details View Logic
+window.viewDailyTxnDetails = function(refId) {
+    const data = getDailyTxns();
+    const txn = data.txns.find(t => t.id === refId);
+    if (txn) {
+        let sourceHtml = "", destHtml = "";
+        
+        txn.formState.sources.forEach((s, idx) => {
+            sourceHtml += `
+            <div class="mode-block">
+                <div class="confirm-item" style="border-bottom: 1px dashed var(--border-color); padding-top: 0;">
+                    <span class="confirm-label">Account / Mode ${idx + 1}</span>
+                    <span class="confirm-val" style="color:var(--danger); font-weight:600;">${s.account} (${s.type})</span>
+                </div>
+                <div class="confirm-item" style="border-bottom: none; padding-bottom: 0;">
+                    <span class="confirm-label">Amount</span>
+                    <span class="confirm-val" style="font-size: 14px; font-weight: bold; color: var(--text-main);">₹${s.amount.toFixed(2)}</span>
+                </div>
+                ${(s.type === 'Cash') ? getDenomMatrixHtml(s.denoms) : ''}
+            </div>`;
+        });
+        
+        txn.formState.dests.forEach((d, idx) => {
+            destHtml += `
+            <div class="mode-block">
+                <div class="confirm-item" style="border-bottom: 1px dashed var(--border-color); padding-top: 0;">
+                    <span class="confirm-label">Account / Mode ${idx + 1}</span>
+                    <span class="confirm-val" style="color:var(--secondary); font-weight:600;">${d.account} (${d.type})</span>
+                </div>
+                <div class="confirm-item" style="border-bottom: none; padding-bottom: 0;">
+                    <span class="confirm-label">Amount</span>
+                    <span class="confirm-val" style="font-size: 14px; font-weight: bold; color: var(--text-main);">₹${d.amount.toFixed(2)}</span>
+                </div>
+                ${(d.type === 'Cash') ? getDenomMatrixHtml(d.denoms) : ''}
+            </div>`;
+        });
+        
+        const detailsHtml = `
+          <div class="confirm-item"><span>Date</span><span>${formatDisplayDate(txn.formState.date)}</span></div>
+          <div class="confirm-item"><span>Ref ID</span><span style="font-family:monospace; color:var(--primary); font-weight:bold;">${txn.formState.reference}</span></div>
+          <div class="confirm-item"><span>Narration</span><span>${txn.formState.narration}</span></div>
+          
+          <div class="confirm-section-title">From (Sources)</div>
+          ${sourceHtml}
+          <div class="confirm-item" style="font-weight:bold; border-top: 1px solid var(--border-color);"><span>Total Out</span><span>₹${txn.totalOut.toFixed(2)}</span></div>
+          
+          <div class="confirm-section-title">To (Destinations)</div>
+          ${destHtml}
+          <div class="confirm-item" style="font-weight:bold; border-top: 1px solid var(--border-color);"><span>Total In</span><span>₹${txn.totalIn.toFixed(2)}</span></div>
+        `;
+        document.getElementById('dailyTxnDetailsContent').innerHTML = detailsHtml;
+        document.getElementById('dailyTxnDetailsModal').classList.remove('hidden');
+    }
+};
+
+// Render Swipeable Daily Logs
+function renderDailyTxnsModal() {
+    const data = getDailyTxns();
+    const listDiv = getEl('todayTxnList');
+    listDiv.innerHTML = '';
+    if (data.txns.length === 0) {
+        listDiv.innerHTML = '<div style="text-align:center;color:var(--text-label);padding:15px;">No transfers logged for this date.</div>';
+        return;
+    }
+    
+    // Render latest first
+    const sorted = [...data.txns].reverse();
+    sorted.forEach(t => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'daily-txn-container';
+        
+        let subText = `${t.formState.sources.length} Sources ➔ ${t.formState.dests.length} Destinations`;
+        
+        wrapper.innerHTML = `
+          <div class="daily-txn-actions">
+            <div class="action-btn btn-edit-log" title="Edit">✏️</div>
+            <div class="action-btn btn-delete-log" title="Delete">🗑️</div>
+          </div>
+          <div class="daily-txn-content">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; width:100%;">
+              <div style="flex:1;min-width:0;">
+                <strong style="color:var(--text-main); font-size:13px;">${t.narration}</strong><br>
+                <span style="color:var(--text-label);font-size:10px;">Ref: ${t.id}</span><br>
+                <span style="color:var(--primary);font-size:11px;font-weight:600;">${subText}</span>
+              </div>
+              <div style="font-weight:700;color:var(--text-main);padding-left:8px;flex-shrink:0;text-align:right;">
+                Out: ₹${t.totalOut.toFixed(2)}<br>
+                <span style="color:var(--secondary); font-size:11px;">In: ₹${t.totalIn.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        listDiv.appendChild(wrapper);
+
+        const content = wrapper.querySelector('.daily-txn-content'), 
+              btnEdit = wrapper.querySelector('.btn-edit-log'), 
+              btnDelete = wrapper.querySelector('.btn-delete-log');
+        
+        btnEdit.onclick = (e) => { e.stopPropagation(); editDailyTxn(t.id); };
+        btnDelete.onclick = (e) => { e.stopPropagation(); removeDailyTxn(t.id); };
+        
+        // Right-to-Left Swipe Logic (Reveal buttons on right)
+        let startX = 0, currentX = 0, isDragging = false, hasDragged = false;
+        function onStart(x) { 
+            document.querySelectorAll('.daily-txn-content.swiped').forEach(c => { 
+                if (c !== content) { c.style.transform = 'translateX(0)'; c.classList.remove('swiped'); } 
+            }); 
+            startX = x; isDragging = true; hasDragged = false; currentX = 0; content.style.transition = 'none'; 
+        }
+        function onMove(x) { 
+            if (!isDragging) return; 
+            currentX = x - startX; 
+            if (content.classList.contains('swiped')) currentX -= 120; // offset if already open
+            if (Math.abs(currentX) > 5) hasDragged = true; 
+            if (currentX > 0) currentX = 0; // Prevent right swipe
+            if (currentX < -140) currentX = -140; // Max left drag
+            content.style.transform = `translateX(${currentX}px)`; 
+        }
+        function onEnd() { 
+            if (!isDragging) return; 
+            isDragging = false; 
+            content.style.transition = 'transform 0.25s ease'; 
+            if (currentX < -50) { 
+                content.style.transform = 'translateX(-120px)'; content.classList.add('swiped'); 
+            } else { 
+                content.style.transform = 'translateX(0)'; content.classList.remove('swiped'); 
+            } 
+            window.removeEventListener('mousemove', handleMouseMove); 
+            window.removeEventListener('mouseup', handleMouseUp); 
+        }
+        
+        content.addEventListener('touchstart', e => onStart(e.touches[0].clientX), {passive: true});
+        content.addEventListener('touchmove', e => onMove(e.touches[0].clientX), {passive: true});
+        content.addEventListener('touchend', onEnd);
+        
+        const handleMouseMove = e => { if (isDragging) onMove(e.clientX); };
+        const handleMouseUp = () => { if (isDragging) onEnd(); };
+        
+        content.addEventListener('mousedown', e => { 
+            if (e.target.closest('.action-btn')) return; 
+            onStart(e.clientX); 
+            window.addEventListener('mousemove', handleMouseMove); 
+            window.addEventListener('mouseup', handleMouseUp); 
+        });
+        
+        content.addEventListener('click', e => { 
+            if (hasDragged) { e.preventDefault(); e.stopPropagation(); return; } 
+            if (content.classList.contains('swiped')) { 
+                content.style.transform = 'translateX(0)'; content.classList.remove('swiped'); e.stopPropagation(); return; 
+            }
+            viewDailyTxnDetails(t.id); 
+        });
+    });
+}
+
+// Delete from Backend
+window.removeDailyTxn = async function(id) {
+    if(!confirm("Delete transfer locally and from the backend?")) return;
+    const data = getDailyTxns();
+    const txn = data.txns.find(t => t.id === id);
+    if (!txn) return;
+    
+    // Remove locally
+    data.txns = data.txns.filter(t => t.id !== id);
+    localStorage.setItem('daily_transfers', JSON.stringify(data));
+    renderSessionDashboard();
+    renderDailyTxnsModal();
+    
+    // Call backend delete
+    try {
+        await fetch(`${DELETE_URL}?action=delete&value=${encodeURIComponent(id)}`, { method: "GET", mode: "no-cors" });
+        showToast("🗑️ Delete command sent to backend");
+    } catch (e) { 
+        showToast("Failed to connect to backend", "var(--danger)"); 
+    }
+};
+
+// ==== Core Form Logic ====
+
 narration.addEventListener('input', (e) => {
   if (e.target.value.trim().toLowerCase() === "cleared card bill") {
-    // Attempt to select Credit type on the first Destination row
     let destRow = document.querySelector('#destContainer .mode-row');
-    if (!destRow) {
-      addMode('dest');
-      destRow = document.querySelector('#destContainer .mode-row');
-    }
+    if (!destRow) { addMode('dest'); destRow = document.querySelector('#destContainer .mode-row'); }
     if (destRow) {
       const typeSel = destRow.querySelector('.type-sel');
       typeSel.value = "Credit";
@@ -512,9 +895,8 @@ narration.addEventListener('input', (e) => {
     }
   }
 });
-// =====================================================
 
-function addMode(side) {
+function addMode(side, initialData = null) {
   const container = getEl(side === 'source' ? 'sourceContainer' : 'destContainer');
   const rowId = Date.now() + Math.random();
   const div = document.createElement('div');
@@ -531,21 +913,33 @@ function addMode(side) {
           <option>Credit</option>
           <option>Rewards</option>
         </select>
-        <select class="acc-sel" id="acc-${rowId}" required>
-          <option value="">Account</option>
-        </select>
-        <input type="number"
-          class="amt-input"
-          step="0.01"
-          inputmode="decimal"
-          placeholder="Amt"
-          oninput="calcSplitTotals(); if(this.closest('#sourceContainer')) autoSyncDestination();"
-          required>
+        <select class="acc-sel hidden" id="acc-${rowId}" required><option value="">Account</option></select>
+        <input type="number" class="amt-input" step="0.01" inputmode="decimal" placeholder="Amt" oninput="calcSplitTotals(); if(this.closest('#sourceContainer')) autoSyncDestination();" required>
       </div>
     </div>
   `;
   container.appendChild(div);
-  enableSwipeToDelete(div.querySelector('.swipe-wrapper'));
+  enableRowSwipe(div.querySelector('.swipe-wrapper'));
+  
+  if (initialData) {
+      const typeSel = div.querySelector('.type-sel');
+      typeSel.value = initialData.type || "";
+      handleTypeChange(typeSel, rowId);
+      
+      if(initialData.type !== "Cash") {
+         const accSel = div.querySelector('.acc-sel');
+         const options = Array.from(accSel.options).map(o => o.value);
+         if(options.includes(initialData.account)) {
+             accSel.value = initialData.account;
+         } else {
+             accSel.value = "Others";
+             accSel.dispatchEvent(new Event('change'));
+             const otherInp = div.querySelector('.other-acc-input');
+             if(otherInp) otherInp.value = initialData.account;
+         }
+      }
+      div.querySelector('.amt-input').value = initialData.amount || "";
+  }
 }
 
 function handleTypeChange(select, rowId) {
@@ -559,23 +953,12 @@ function handleTypeChange(select, rowId) {
 
   if (type === "Cash" || type === "") {
     amtInput.readOnly = (type === "Cash");
-    if(type === "Cash") {
-      amtInput.style.backgroundColor = "var(--bg-body)";
-      amtInput.style.fontWeight = "600";
-      calcCash(); 
-    } else {
-      amtInput.readOnly = false;
-      amtInput.style.backgroundColor = "";
-      amtInput.style.fontWeight = "400";
-    }
-    accSel.classList.add('hidden');
-    accSel.required = false;
+    if(type === "Cash") { amtInput.style.backgroundColor = "var(--bg-body)"; amtInput.style.fontWeight = "600"; calcCash(); } 
+    else { amtInput.readOnly = false; amtInput.style.backgroundColor = ""; amtInput.style.fontWeight = "400"; }
+    accSel.classList.add('hidden'); accSel.required = false;
   } else {
-    amtInput.readOnly = false;
-    amtInput.style.backgroundColor = "";
-    amtInput.style.fontWeight = "400";
-    accSel.classList.remove('hidden');
-    accSel.required = true;
+    amtInput.readOnly = false; amtInput.style.backgroundColor = ""; amtInput.style.fontWeight = "400";
+    accSel.classList.remove('hidden'); accSel.required = true;
     
     accSel.innerHTML = "<option value=''>Account</option>";
     let list = (type === "Credit") ? creditCards : (type === "Rewards" ? rewardPlatforms : bankAccounts);
@@ -583,10 +966,8 @@ function handleTypeChange(select, rowId) {
     accSel.add(new Option("Others", "Others"));
     
     const otherInput = document.createElement('input');
-    otherInput.type = 'text';
-    otherInput.className = 'other-acc-input hidden';
-    otherInput.placeholder = 'Enter Account Name';
-    row.appendChild(otherInput);
+    otherInput.type = 'text'; otherInput.className = 'other-acc-input hidden';
+    otherInput.placeholder = 'Enter Account Name'; row.appendChild(otherInput);
 
     accSel.onchange = async () => {
       const isOther = accSel.value === 'Others';
@@ -594,39 +975,22 @@ function handleTypeChange(select, rowId) {
       otherInput.required = isOther;
       if (!isOther) otherInput.value = ""; 
 
-      // ================== NEW CREDIT CARD BILL LOGIC ==================
       if (type === "Credit" && narration.value.trim().toLowerCase() === "cleared card bill") {
         const cardName = accSel.value;
         if (cardName && !isOther) {
-          amtInput.value = "";
-          amtInput.placeholder = "Loading...";
-          
+          amtInput.value = ""; amtInput.placeholder = "Loading...";
           try {
-            // GET request to the Google Script Web App
             const response = await fetch(`${SCRIPT_URL}?action=getBillingAmount&cardName=${encodeURIComponent(cardName)}`);
             const data = await response.json();
-            
             if (data && data.amount !== undefined && data.amount !== "") {
-              // Updates the current (To / Destination) amount
               amtInput.value = data.amount;
-              
-              // ---> NEW: Updates the First (From / Source) amount <---
               const sourceAmtInput = document.querySelector('#sourceContainer .amt-input');
-              if (sourceAmtInput) {
-                sourceAmtInput.value = data.amount;
-              }
-              
+              if (sourceAmtInput) sourceAmtInput.value = data.amount;
               calcSplitTotals();
-            } else {
-              amtInput.placeholder = "0.00";
-            }
-          } catch (e) {
-            console.error("Failed to fetch billing amount:", e);
-            amtInput.placeholder = "Amt";
-          }
+            } else { amtInput.placeholder = "0.00"; }
+          } catch (e) { amtInput.placeholder = "Amt"; }
         }
       }
-      // =================================================================
     };
   }
   checkCashVisibility();
@@ -634,44 +998,32 @@ function handleTypeChange(select, rowId) {
 
 function calcCash() {
   let total = 0;
-  document.querySelectorAll("[data-d]").forEach(i => {
-    total += Number(i.dataset.d) * Number(i.value || 0);
-  });
+  document.querySelectorAll(".denom-inp").forEach(i => total += Number(i.dataset.d) * Number(i.value || 0));
   document.querySelectorAll('.mode-row').forEach(row => {
-    if (row.querySelector('.type-sel').value === "Cash") {
-      row.querySelector('.amt-input').value = total > 0 ? total.toFixed(2) : "";
-    }
+    if (row.querySelector('.type-sel').value === "Cash") row.querySelector('.amt-input').value = total > 0 ? total.toFixed(2) : "";
   });
   const cb = getEl("cashBox");
-  cb.style.border = "";
-  cb.classList.remove("invalid-cash");
+  cb.style.border = ""; cb.classList.remove("invalid-cash");
   calcSplitTotals();
 }
 
 function autoSyncDestination() {
   let totalSource = 0;
-  document.querySelectorAll('#sourceContainer .amt-input').forEach(i => {
-    totalSource += Number(i.value || 0);
-  });
+  document.querySelectorAll('#sourceContainer .amt-input').forEach(i => totalSource += Number(i.value || 0));
   const destRows = document.querySelectorAll('#destContainer .mode-row');
   if (destRows.length === 0) return;
-  if (destRows.length === 1) {
-    destRows[0].querySelector('.amt-input').value = totalSource !== 0 ? totalSource : "";
-  } else {
+  if (destRows.length === 1) { destRows[0].querySelector('.amt-input').value = totalSource !== 0 ? totalSource : ""; } 
+  else {
     destRows.forEach((row, index) => {
       const amtField = row.querySelector('.amt-input');
-      if (index === 0) {
-        amtField.value = totalSource !== 0 ? totalSource : "";
-      } else {
-        amtField.value = "";
-      }
+      if (index === 0) amtField.value = totalSource !== 0 ? totalSource : ""; else amtField.value = "";
     });
   }
   calcSplitTotals();
 }
 
 document.addEventListener('input', (e) => {
-  if (e.target.dataset.d) {
+  if (e.target.classList.contains('denom-inp')) {
     calcCash();
     if (selfForm.classList.contains('was-validated')) validateCash();
   }
@@ -689,187 +1041,342 @@ function calcSplitTotals() {
   diffEl.style.color = Math.abs(diff) < 0.01 ? 'var(--secondary)' : 'var(--danger)';
 }
 
-addMode('source');
-addMode('dest');
+function enableRowSwipe(wrapper) {
+  if (!wrapper) return;
+  const content = wrapper.querySelector('.mode-row-content');
+  const row = wrapper.closest('.mode-row');
+  const container = row.parentElement;
+  let startX = 0, startY = 0, currentX = 0, isDragging = false, isHorizontal = null;
+
+  wrapper.addEventListener('touchstart', (e) => {
+    if (e.target.closest('select')) return;
+    const touch = e.touches[0];
+    startX = touch.clientX; startY = touch.clientY; isDragging = true; isHorizontal = null; 
+    content.style.transition = 'none';
+  }, { passive: true });
+
+  wrapper.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    const touch = e.touches[0]; const dx = touch.clientX - startX; const dy = touch.clientY - startY;
+    if (isHorizontal === null) {
+      if (Math.abs(dx) > 10) isHorizontal = true;
+      else if (Math.abs(dy) > 10) isHorizontal = false; 
+    }
+    if (isHorizontal === true && dx < 0) {
+      if (e.cancelable) e.preventDefault(); 
+      currentX = dx; content.style.transform = `translateX(${dx}px)`;
+    }
+  }, { passive: false });
+
+  const handleEnd = () => {
+    if (!isDragging) return; isDragging = false;
+    const rows = container.querySelectorAll('.mode-row');
+    const isFirstRow = rows[0] === row;
+    const threshold = wrapper.offsetWidth * 0.25;
+
+    if (currentX < -threshold && !isFirstRow){
+      content.style.transition = '0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+      content.style.transform = 'translateX(-120%)';
+      content.style.opacity = '0';
+      setTimeout(() => { row.remove(); calcSplitTotals(); autoSyncDestination(); }, 300);
+    } else {
+      content.style.transition = '0.2s ease'; content.style.transform = 'translateX(0)';
+    }
+    currentX = 0;
+  };
+
+  wrapper.addEventListener('touchend', handleEnd); wrapper.addEventListener('touchcancel', handleEnd);
+  
+  let isMouseDown = false;
+  wrapper.addEventListener('mousedown', (e) => {
+    if (e.target.closest('select, input, button')) return;
+    isMouseDown = true; startX = e.clientX; startY = e.clientY; isDragging = true; isHorizontal = null; content.style.transition = 'none';
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!isMouseDown || !isDragging) return;
+    const dx = e.clientX - startX; const dy = e.clientY - startY;
+    if (isHorizontal === null) { if (Math.abs(dx) > 10) isHorizontal = true; else if (Math.abs(dy) > 10) isHorizontal = false; }
+    if (isHorizontal === true && dx < 0) { currentX = dx; content.style.transform = `translateX(${dx}px)`; }
+  });
+  window.addEventListener('mouseup', () => { if (!isMouseDown) return; isMouseDown = false; handleEnd(); });
+}
+
+addMode('source'); addMode('dest');
 
 selfForm.addEventListener('input', (e) => {
-  if (selfForm.classList.contains('was-validated')) {
-    if (e.target.checkValidity()) {
-      e.target.style.borderColor = "";
-      e.target.style.backgroundColor = "";
-      if(e.target.dataset.d) calcCash();
-    }
+  if (selfForm.classList.contains('was-validated') && e.target.checkValidity()) {
+      e.target.style.borderColor = ""; e.target.style.backgroundColor = "";
   }
 });
 
-selfForm.onsubmit = async e => {
-  e.preventDefault();
-  selfForm.classList.add("was-validated");
-  const isFormValid = selfForm.checkValidity();
-  const isCashValid = validateCash();
-  if (!isFormValid || !isCashValid) {
-    const firstError = document.querySelector(':invalid, .invalid-cash');
-    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
-
-  let sourceHtml = "", destHtml = "";
-  let outTotal = 0, inTotal = 0;
-  const getDenomMatrix = () => {
-    let matrixHtml = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; background: var(--bg-body); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);">`;
-    document.querySelectorAll("[data-d]").forEach(i => {
-      const count = parseInt(i.value || 0);
-      const opacity = count > 0 ? "1" : "0.4";
-      const border = count > 0 ? "var(--primary)" : "var(--border-color)";
-      matrixHtml += `<div style="font-size: 10px; background: var(--bg-card); border: 1px solid ${border}; border-radius: 6px; padding: 4px 2px; text-align: center; opacity: ${opacity};"><div style="font-weight: bold;">₹${i.dataset.d}</div><div>${count}</div></div>`;
-    });
-    matrixHtml += `</div>`;
-    return matrixHtml;
+// ==== State Builder ====
+function buildFormState() {
+  const state = {
+      date: dateInp.value,
+      reference: refInp.value.trim() || refInp.placeholder,
+      narration: narration.value.trim(),
+      sources: [],
+      dests: []
   };
-
+  
   document.querySelectorAll('#sourceContainer .mode-row').forEach(row => {
     const type = row.querySelector('.type-sel').value;
     const accSelVal = row.querySelector('.acc-sel').value;
-    const acc = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
+    const account = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
     const val = parseFloat(row.querySelector('.amt-input').value || 0);
     if (val > 0) {
-      outTotal += val;
-      const cashDetails = (type === "Cash") ? getDenomMatrix() : "";
-      sourceHtml += `<div style="padding: 12px 0; border-bottom: 1px solid var(--border-color);"><div class="confirm-item" style="border:none; padding:0;"><span style="color:var(--danger); font-weight:600;">● ${acc} (${type})</span><span>₹${val.toFixed(2)}</span></div>${cashDetails}</div>`;
+        let denomsObj = {};
+        if (type === "Cash") document.querySelectorAll(".denom-inp").forEach(i => { denomsObj[i.dataset.d] = i.value || 0; });
+        state.sources.push({ type, account, amount: val, denoms: denomsObj });
     }
   });
+  
   document.querySelectorAll('#destContainer .mode-row').forEach(row => {
     const type = row.querySelector('.type-sel').value;
     const accSelVal = row.querySelector('.acc-sel').value;
-    const acc = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
+    const account = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
     const val = parseFloat(row.querySelector('.amt-input').value || 0);
     if (val > 0) {
-      inTotal += val;
-      const cashDetails = (type === "Cash") ? getDenomMatrix() : "";
-      destHtml += `<div style="padding: 12px 0; border-bottom: 1px solid var(--border-color);"><div class="confirm-item" style="border:none; padding:0;"><span style="color:var(--secondary); font-weight:600;">● ${acc} (${type})</span><span>₹${val.toFixed(2)}</span></div>${cashDetails}</div>`;
+        let denomsObj = {};
+        if (type === "Cash") document.querySelectorAll(".denom-inp").forEach(i => { denomsObj[i.dataset.d] = i.value || 0; });
+        state.dests.push({ type, account, amount: val, denoms: denomsObj });
     }
   });
-
-  if (outTotal === 0 && inTotal === 0) { alert("Please enter transaction amounts."); return; }
-
-  const tempRows = [];
-  document.querySelectorAll('#sourceContainer .mode-row, #destContainer .mode-row').forEach(row => {
-    const val = parseFloat(row.querySelector('.amt-input').value || 0);
-    if (val > 0) {
-      const isSource = row.closest('#sourceContainer') !== null;
-      const type = row.querySelector('.type-sel').value;
-      const accSelVal = row.querySelector('.acc-sel').value;
-      const account = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
-      tempRows.push({
-        date: date.value,
-        narration: narration.value + (isSource ? " (From)" : " (To)"),
-        type: type,
-        account: account,
-        amount: val
-      });
-    }
-  });
-  localStorage.setItem("lastTransferBatch", JSON.stringify(tempRows));
-
-  if (batchToggle.checked || !navigator.onLine) {
-    saveBatchToDB(outTotal, inTotal);
-    return;
-  }
-
-  const today = new Date();
-  const dateStr = today.getFullYear().toString() + (today.getMonth() + 1).toString().padStart(2, '0') + today.getDate().toString().padStart(2, '0');
-  const suffix = Math.random().toString(36).substr(2, 4).toUpperCase();
-  currentBatchRef = `REF-${dateStr}-${suffix}`;
-
-  confirmDetails.innerHTML = `
-    <div class="confirm-item"><span>Date</span><span>${formatDisplayDate(date.value)}</span></div>
-    <div class="confirm-item"><span>Ref ID</span><span style="font-family:monospace;">${currentBatchRef}</span></div>
-    <div class="confirm-section-title">From (Sources)</div>${sourceHtml}<div class="confirm-item" style="font-weight:bold;"><span>Total Out</span><span>₹${outTotal.toFixed(2)}</span></div>
-    <div class="confirm-section-title">To (Destinations)</div>${destHtml}<div class="confirm-item" style="font-weight:bold;"><span>Total In</span><span>₹${inTotal.toFixed(2)}</span></div>
-    <hr><div class="confirm-item" style="background: var(--bg-body); padding: 12px;"><span>Balance Diff</span><span style="color:${Math.abs(outTotal - inTotal) < 0.01 ? 'var(--secondary)' : 'var(--danger)'}">₹${(outTotal - inTotal).toFixed(2)}</span></div>
-  `;
-  confirmModal.classList.remove("hidden");
-};
+  
+  return state;
+}
 
 function validateCash() {
   const hasCash = [...document.querySelectorAll('.type-sel')].some(s => s.value === 'Cash');
   const cb = getEl("cashBox");
   if (!hasCash) { cb.classList.remove("invalid-cash"); return true; }
-  let denomTotal = 0;
-  document.querySelectorAll("[data-d]").forEach(i => denomTotal += Number(i.dataset.d) * Number(i.value || 0));
-  let expectedCash = 0;
+  let denomTotal = 0, expectedCash = 0;
+  document.querySelectorAll(".denom-inp").forEach(i => denomTotal += Number(i.dataset.d) * Number(i.value || 0));
   document.querySelectorAll('.mode-row').forEach(row => { if(row.querySelector('.type-sel').value === 'Cash') expectedCash += Number(row.querySelector('.amt-input').value || 0); });
   const isInvalid = (denomTotal <= 0) || (denomTotal.toFixed(2) !== expectedCash.toFixed(2));
-  if (isInvalid) cb.classList.add("invalid-cash");
-  else cb.classList.remove("invalid-cash");
+  if (isInvalid) cb.classList.add("invalid-cash"); else cb.classList.remove("invalid-cash");
   return !isInvalid;
 }
 
-function saveBatchToDB() {
-  if (!db) return alert("DB not ready");
-  const ref = "REF-" + new Date().getFullYear() + (new Date().getMonth()+1).toString().padStart(2,'0') + new Date().getDate().toString().padStart(2,'0') + "-" + Math.random().toString(36).substr(2, 4).toUpperCase();
-  const rowsToSave = [];
-  document.querySelectorAll('#sourceContainer .mode-row, #destContainer .mode-row').forEach(row => {
-    const val = parseFloat(row.querySelector('.amt-input').value);
-    if (val > 0) {
-      const isSource = row.closest('#sourceContainer') !== null;
-      const type = row.querySelector('.type-sel').value;
-      const accSelVal = row.querySelector('.acc-sel').value;
-      const account = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
-      rowsToSave.push({
-        date: date.value,
-        narration: narration.value + (isSource ? " (From)" : " (To)"),
-        refid: ref,
-        type: type,
-        account: account,
-        amount: val,
-        denoms: (type === "Cash") ? (()=>{let d={}; document.querySelectorAll("[data-d]").forEach(i=>d["d"+i.dataset.d]=i.value||0); return d;})() : {}
-      });
-    }
-  });
-  const tx = db.transaction("transferQueue", "readwrite");
-  const store = tx.objectStore("transferQueue");
-  rowsToSave.forEach(row => store.add(row));
-  tx.oncomplete = () => { resetForm(); updatePendingCount(); };
+// ==== Compare Matrix builder for Edit ====
+function buildCompareHtml(oldSt, newSt) {
+    let html = `<div class="col-header left">Existing</div><div class="col-header center">Field</div><div class="col-header right">New</div>`;
+
+    const addRow = (label, oldVal, newVal, isDate = false) => {
+        let oStr = (oldVal !== undefined && oldVal !== null && oldVal !== "") ? String(oldVal) : "-";
+        let nStr = (newVal !== undefined && newVal !== null && newVal !== "") ? String(newVal) : "-";
+        let diff = oStr !== nStr;
+
+        if (isDate && oldVal && newVal) {
+            oStr = formatDisplayDate(oldVal);
+            nStr = formatDisplayDate(newVal);
+            diff = oStr !== nStr;
+        }
+
+        const oCls = diff ? 'val-box old-diff' : 'val-box';
+        const nCls = diff ? 'val-box new-diff' : 'val-box';
+        
+        let snippet = `<div class="${oCls}">${oStr}</div><div class="field-label">${label}</div><div class="${nCls}">${nStr}</div>`;
+        return snippet;
+    };
+
+    let fullHtml = html;
+    
+    fullHtml += addRow("Date", oldSt.date, newSt.date, true);
+    fullHtml += addRow("Reference", oldSt.reference, newSt.reference);
+    fullHtml += addRow("Narration", oldSt.narration, newSt.narration);
+    
+    const processModes = (oldArr, newArr, heading) => {
+        const allModes = new Set();
+        const oldMap = {};
+        const newMap = {};
+
+        (oldArr || []).forEach(x => {
+            const key = `${x.account}|(${x.type})`;
+            allModes.add(key);
+            oldMap[key] = (oldMap[key] || 0) + Number(x.amount || 0);
+        });
+        (newArr || []).forEach(x => {
+            const key = `${x.account}|(${x.type})`;
+            allModes.add(key);
+            newMap[key] = (newMap[key] || 0) + Number(x.amount || 0);
+        });
+
+        if (allModes.size === 0) return "";
+
+        let sectionHtml = `<div class="diff-heading"><span>${heading}</span></div>`;
+
+        allModes.forEach(key => {
+            const oldAmt = oldMap[key] !== undefined ? `₹${oldMap[key].toFixed(2)}` : "-";
+            const newAmt = newMap[key] !== undefined ? `₹${newMap[key].toFixed(2)}` : "-";
+            
+            const parts = key.split('|');
+            const labelHtml = `<div style="line-height:1.3;">${parts[0]}<br><span style="font-size:10px; font-weight:normal; color:var(--text-label);">${parts[1]}</span></div>`;
+            
+            sectionHtml += addRow(labelHtml, oldAmt, newAmt);
+        });
+        return sectionHtml;
+    };
+
+    fullHtml += processModes(oldSt.sources, newSt.sources, "Sources (From)");
+    fullHtml += processModes(oldSt.dests, newSt.dests, "Destinations (To)");
+
+    return fullHtml;
 }
 
-async function executeSubmit() {
+// ==== SUBMIT ACTION ====
+selfForm.onsubmit = async e => {
+  e.preventDefault();
+  selfForm.classList.add("was-validated");
+  if (!selfForm.checkValidity() || !validateCash()) {
+    const firstError = document.querySelector(':invalid, .invalid-cash');
+    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  const newState = buildFormState();
+  if (newState.sources.length === 0 && newState.dests.length === 0) { showToast("Please enter transaction amounts.", "var(--danger)"); return; }
+
+  // Save for repeat
+  localStorage.setItem("lastTransferState", JSON.stringify(newState));
+
+  if (_editingRefId !== null) {
+      // Editing Flow
+      if (isStateEqual(_oldFormState, newState)) { 
+          showToast("No changes detected", "#f59e0b"); 
+          return; 
+      }
+      
+      _newFormState = newState;
+      getEl('editCompareGrid').innerHTML = buildCompareHtml(_oldFormState, newState);
+      getEl('editCompareModal').classList.remove('hidden');
+      return;
+  }
+
+  // Normal flow
+  generateSubmitPreview(newState);
+  if (batchToggle.checked || !navigator.onLine) { saveBatchToDB(newState); return; }
+  confirmModal.classList.remove("hidden");
+};
+
+function generateSubmitPreview(state) {
+    let sourceHtml = "", destHtml = "";
+    let outTotal = 0, inTotal = 0;
+    
+    state.sources.forEach((s, idx) => {
+        outTotal += s.amount;
+        sourceHtml += `
+        <div class="mode-block">
+            <div class="confirm-item" style="border-bottom: 1px dashed var(--border-color); padding-top: 0;">
+                <span class="confirm-label">Account / Mode ${idx + 1}</span>
+                <span class="confirm-val" style="color:var(--danger); font-weight:600;">${s.account} (${s.type})</span>
+            </div>
+            <div class="confirm-item" style="border-bottom: none; padding-bottom: 0;">
+                <span class="confirm-label">Amount</span>
+                <span class="confirm-val" style="font-size: 14px; font-weight: bold; color: var(--text-main);">₹${s.amount.toFixed(2)}</span>
+            </div>
+            ${(s.type === 'Cash') ? getDenomMatrixHtml(s.denoms) : ''}
+        </div>`;
+    });
+    state.dests.forEach((d, idx) => {
+        inTotal += d.amount;
+        destHtml += `
+        <div class="mode-block">
+            <div class="confirm-item" style="border-bottom: 1px dashed var(--border-color); padding-top: 0;">
+                <span class="confirm-label">Account / Mode ${idx + 1}</span>
+                <span class="confirm-val" style="color:var(--secondary); font-weight:600;">${d.account} (${d.type})</span>
+            </div>
+            <div class="confirm-item" style="border-bottom: none; padding-bottom: 0;">
+                <span class="confirm-label">Amount</span>
+                <span class="confirm-val" style="font-size: 14px; font-weight: bold; color: var(--text-main);">₹${d.amount.toFixed(2)}</span>
+            </div>
+            ${(d.type === 'Cash') ? getDenomMatrixHtml(d.denoms) : ''}
+        </div>`;
+    });
+
+    confirmDetails.innerHTML = `
+      <div class="confirm-item"><span>Date</span><span>${formatDisplayDate(state.date)}</span></div>
+      <div class="confirm-item"><span>Ref ID</span><span style="font-family:monospace; color:var(--primary); font-weight:bold;">${state.reference}</span></div>
+      
+      <div class="confirm-section-title">From (Sources)</div>
+      ${sourceHtml}
+      <div class="confirm-item" style="font-weight:bold; border-top: 1px solid var(--border-color);"><span>Total Out</span><span>₹${outTotal.toFixed(2)}</span></div>
+      
+      <div class="confirm-section-title">To (Destinations)</div>
+      ${destHtml}
+      <div class="confirm-item" style="font-weight:bold; border-top: 1px solid var(--border-color);"><span>Total In</span><span>₹${inTotal.toFixed(2)}</span></div>
+      
+      <div class="confirm-item" style="background: var(--bg-body); padding: 12px; border-radius:8px; margin-top: 10px;"><span>Balance Diff</span><span style="font-weight:bold; color:${Math.abs(outTotal - inTotal) < 0.01 ? 'var(--secondary)' : 'var(--danger)'}">₹${(outTotal - inTotal).toFixed(2)}</span></div>
+    `;
+}
+
+// ==== EDIT SAVE ACTIONS ====
+getEl('btnConfirmEditSave').onclick = async () => {
+    if(!_editingRefId || !_newFormState) return;
+    getEl('editCompareModal').classList.add('hidden');
+    
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true; submitBtn.textContent = "Updating...";
+    
+    // 1. Delete Old
+    try {
+        await fetch(`${DELETE_URL}?action=delete&value=${encodeURIComponent(_editingRefId)}`, { mode: "no-cors" });
+    } catch(e) { console.warn("Delete old failed locally, proceeding to append"); }
+    
+    // 2. Submit New
+    generateSubmitPreview(_newFormState);
+    await executeSubmit(_newFormState);
+    
+    _editingRefId = null;
+    _oldFormState = null;
+    _newFormState = null;
+    submitBtn.textContent = originalText; submitBtn.disabled = false;
+};
+getEl('btnCancelEditSave').onclick = () => {
+    getEl('editCompareModal').classList.add('hidden');
+    _newFormState = null; showToast("Edit cancelled");
+};
+
+// ==== DB & QUEUE SAVE ====
+function convertStateToRows(state) {
+    const rows = [];
+    state.sources.forEach(s => rows.push({ date: state.date, narration: state.narration + " (From)", refid: state.reference, type: s.type, account: s.account, amount: s.amount, denoms: s.denoms }));
+    state.dests.forEach(d => rows.push({ date: state.date, narration: state.narration + " (To)", refid: state.reference, type: d.type, account: d.account, amount: d.amount, denoms: d.denoms }));
+    return rows;
+}
+
+function saveBatchToDB(state) {
+  if (!db) return showToast("DB not ready", "var(--danger)");
+  const rows = convertStateToRows(state);
+  const tx = db.transaction("transferQueue", "readwrite");
+  const store = tx.objectStore("transferQueue");
+  rows.forEach(row => store.add(row));
+  tx.oncomplete = () => { resetForm(); updatePendingCount(); showToast("📦 Saved Offline"); };
+}
+
+async function executeSubmit(overrideState = null) {
   if (isSubmitting) return;
   confirmModal.classList.add("hidden");
-  isSubmitting = true;
-  submitBtn.disabled = true;
-  const rowsToSend = [];
-  const ref = currentBatchRef;
-  document.querySelectorAll('#sourceContainer .mode-row, #destContainer .mode-row').forEach(row => {
-    const val = parseFloat(row.querySelector('.amt-input').value);
-    if (val > 0) {
-      const isSource = row.closest('#sourceContainer') !== null;
-      const type = row.querySelector('.type-sel').value;
-      const accSelVal = row.querySelector('.acc-sel').value;
-      const account = accSelVal === "Others" ? row.querySelector('.other-acc-input').value : (accSelVal || "Cash");
-      rowsToSend.push({
-        date: date.value,
-        narration: narration.value + (isSource ? " (From)" : " (To)"),
-        refid: ref,
-        type: type,
-        account: account,
-        amount: Math.abs(val),
-        denoms: (type === "Cash") ? (()=>{let d={}; document.querySelectorAll("[data-d]").forEach(i=>d["d"+i.dataset.d]=i.value||0); return d;})() : {}
-      });
-    }
-  });
+  isSubmitting = true; submitBtn.disabled = true;
+  
+  const state = overrideState || buildFormState();
+  const rowsToSend = convertStateToRows(state);
+
   try {
     for (let i = 0; i < rowsToSend.length; i++) {
       submitBtn.textContent = `Syncing Row ${i+1}/${rowsToSend.length}...`;
       await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(rowsToSend[i]) });
     }
-    alert(`Success! ${rowsToSend.length} rows linked with Reference: ${ref}`);
+    showToast(`Success! Linked with Ref: ${state.reference}`);
     resetForm();
-    sourceContainer.innerHTML = ""; destContainer.innerHTML = "";
-    addMode('source'); addMode('dest');
-    calcSplitTotals();
-  } catch (err) { alert("Sync failed. Please check connection."); }
-  finally { isSubmitting = false; submitBtn.disabled = false; submitBtn.textContent = "Submit Transfer"; currentBatchRef = ""; }
+    
+    // Refresh logger locally if it was today
+    if (state.date === dateInp.value) { fetchLogsForDate(state.date); }
+  } catch (err) { 
+      saveBatchToDB(state); 
+  } finally { 
+      isSubmitting = false; submitBtn.disabled = false; submitBtn.textContent = "Submit Transfer"; 
+  }
 }
 
 function resetForm() {
@@ -877,133 +1384,16 @@ function resetForm() {
   selfForm.reset();
   selfForm.classList.remove("was-validated");
   cashBox.classList.add("hidden");
-  date.value = new Date().toISOString().split("T")[0];
-  document.querySelectorAll("[data-d]").forEach(i => i.value = "");
+  dateInp.value = getTodayIST();
+  setRefPlaceholder();
+  document.querySelectorAll(".denom-inp").forEach(i => i.value = "");
   cashBox.classList.remove("invalid-cash");
   batchToggle.checked = bState;
-  getEl('totalOut').textContent = "₹0.00";
-  getEl('totalIn').textContent = "₹0.00";
-  getEl('balanceDiff').textContent = "Difference: ₹0.00";
-}
-
-// Enhanced swipe-to-delete for both touch and mouse
-function enableSwipeToDelete(wrapper) {
-  if (!wrapper) return;
-
-  const content = wrapper.querySelector('.mode-row-content');
-  const row = wrapper.closest('.mode-row');
-  const container = row.parentElement;
-
-  let startX = 0, startY = 0;
-  let currentX = 0;
-  let isDragging = false;
-  let isHorizontal = null; // Use null to detect first movement
-
-wrapper.addEventListener('touchstart', (e) => {
-  if (e.target.closest('select')) return;
-
-    const touch = e.touches[0];
-    startX = touch.clientX;
-    startY = touch.clientY;
-    isDragging = true;
-    isHorizontal = null; 
-    content.style.transition = 'none';
-  }, { passive: true });
-
-  wrapper.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-
-    const touch = e.touches[0];
-    const dx = touch.clientX - startX;
-    const dy = touch.clientY - startY;
-
-    // Lock direction on first significant movement
-    if (isHorizontal === null) {
-      if (Math.abs(dx) > 10) {
-        isHorizontal = true;
-      } else if (Math.abs(dy) > 10) {
-        isHorizontal = false; // It's a vertical scroll
-      }
-    }
-
-    // Only move if we confirmed horizontal swipe
-    if (isHorizontal === true) {
-      if (dx < 0) { // Only allow swiping left
-        if (e.cancelable) e.preventDefault(); 
-        currentX = dx;
-        content.style.transform = `translateX(${dx}px)`;
-      }
-    }
-  }, { passive: false });
-
-  const handleEnd = () => {
-    if (!isDragging) return;
-    isDragging = false;
-
-    const rows = container.querySelectorAll('.mode-row');
-    const isFirstRow = rows[0] === row;
-
-    // Threshold: swipe at least 25% of the width
-    const threshold = wrapper.offsetWidth * 0.25;
-
-if (currentX < -threshold && !isFirstRow){
-      content.style.transition = '0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-      content.style.transform = 'translateX(-120%)';
-      content.style.opacity = '0';
-
-      setTimeout(() => {
-        row.remove();
-        calcSplitTotals();
-        autoSyncDestination();
-      }, 300);
-    } else {
-      content.style.transition = '0.2s ease';
-      content.style.transform = 'translateX(0)';
-    }
-    currentX = 0;
-  };
-
-  wrapper.addEventListener('touchend', handleEnd);
-  wrapper.addEventListener('touchcancel', handleEnd);
-  // ===== DESKTOP MOUSE SUPPORT =====
-let isMouseDown = false;
-
-wrapper.addEventListener('mousedown', (e) => {
-  if (e.target.closest('select, input, button')) return;
-
-  isMouseDown = true;
-  startX = e.clientX;
-  startY = e.clientY;
-  isDragging = true;
-  isHorizontal = null;
-  content.style.transition = 'none';
-});
-
-window.addEventListener('mousemove', (e) => {
-  if (!isMouseDown || !isDragging) return;
-
-  const dx = e.clientX - startX;
-  const dy = e.clientY - startY;
-
-  if (isHorizontal === null) {
-    if (Math.abs(dx) > 10) {
-      isHorizontal = true;
-    } else if (Math.abs(dy) > 10) {
-      isHorizontal = false;
-    }
-  }
-
-  if (isHorizontal === true && dx < 0) {
-    currentX = dx;
-    content.style.transform = `translateX(${dx}px)`;
-  }
-});
-
-window.addEventListener('mouseup', () => {
-  if (!isMouseDown) return;
-  isMouseDown = false;
-  handleEnd();
-});
+  sourceContainer.innerHTML = ""; destContainer.innerHTML = "";
+  addMode('source'); addMode('dest');
+  calcSplitTotals();
+  _editingRefId = null;
+  fetchLogsForDate(dateInp.value);
 }
 
 function checkCashVisibility() {
@@ -1011,122 +1401,169 @@ function checkCashVisibility() {
   cashBox.classList.toggle("hidden", !anyCashSelected);
 }
 
+// ==== Edit Action (Populate Form) ====
+window.editDailyTxn = function(refId) {
+    const data = getDailyTxns();
+    const txn = data.txns.find(t => t.id === refId);
+    if (!txn || !txn.formState) { showToast("Transfer details missing", "var(--danger)"); return; }
+    
+    _editingRefId = refId;
+    _oldFormState = txn.formState;
+    getEl('todayTxnModal').classList.add('hidden');
+    
+    sourceContainer.innerHTML = ""; destContainer.innerHTML = "";
+    
+    // Process Date back to strict YYYY-MM-DD for the input field to accept it natively
+    try {
+        const d = new Date(txn.formState.date);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        dateInp.value = `${yyyy}-${mm}-${dd}`;
+    } catch(e) {
+        dateInp.value = txn.formState.date; // Fallback
+    }
+    fetchLogsForDate(dateInp.value);
+    
+    refInp.value = txn.formState.reference;
+    narration.value = txn.formState.narration;
+    
+    txn.formState.sources.forEach(s => addMode('source', s));
+    txn.formState.dests.forEach(d => addMode('dest', d));
+    
+    // If cash exists in any, populate the master denoms
+    document.querySelectorAll(".denom-inp").forEach(i => i.value = "");
+    const allRows = [...txn.formState.sources, ...txn.formState.dests];
+    allRows.forEach(r => {
+        if(r.type === 'Cash' && r.denoms) {
+            Object.keys(r.denoms).forEach(dKey => {
+                const inp = document.querySelector(`.denom-inp[data-d="${dKey}"]`);
+                if(inp && r.denoms[dKey]) inp.value = r.denoms[dKey];
+            });
+        }
+    });
+    
+    calcCash();
+    checkCashVisibility();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast("✏️ Editing Transfer: " + refId);
+};
+
+// ==== Queue Rendering ====
 function renderQueueTable(items) {
   queueTableBody.innerHTML = items.length ? "" : "<tr><td colspan='6'>Queue is empty</td></tr>";
   items.forEach(item => {
     const isCash = item.type === 'Cash';
-    const denStr = isCash && item.denoms ? denoms.map(v => `${v}x${item.denoms['d'+v]||0}`).join(', ') : '';
+    const denStr = isCash && item.denoms ? denoms.map(v => `${v}x${item.denoms[v]||0}`).join(', ') : '';
     const isSource = item.narration.includes("(From)");
     const accountDisplay = isCash ? `<strong>Cash</strong><br><span class="queue-denoms">${denStr}</span>` : `<strong>${item.account}</strong><br>(${item.type})`;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${formatDisplayDate(item.date)}</td><td style="text-align:left;">${item.narration}</td><td>${isSource ? accountDisplay : '---'}</td><td>${!isSource ? accountDisplay : '---'}</td><td style="font-weight:600; color:${isSource ? '#ef4444' : '#10b981'};">₹${item.amount.toFixed(2)}</td><td><button class="action-btn btn-edit-mini" onclick="editItem(${item.id})">✏️</button><button class="action-btn btn-del-mini" onclick="deleteItem(${item.id})">🗑️</button></td>`;
-    queueTableBody.appendChild(tr);
+    
+    queueTableBody.innerHTML += `<tr>
+        <td>${formatDisplayDate(item.date)}</td>
+        <td style="text-align:left;">${item.narration.replace(/ \(From\)| \(To\)/g, "")}</td>
+        <td>${isSource ? accountDisplay : '---'}</td>
+        <td>${!isSource ? accountDisplay : '---'}</td>
+        <td style="font-weight:600; color:${isSource ? '#ef4444' : '#10b981'};">₹${item.amount.toFixed(2)}</td>
+        <td>
+           <button class="action-btn-sm btn-edit-mini" onclick="editQueueItem(${item.id})">✏️</button>
+           <button class="action-btn-sm btn-del-mini" onclick="deleteQueueItem(${item.id})">🗑️</button>
+        </td>
+    </tr>`;
   });
 }
 
-window.deleteItem = id => { if(confirm("Delete?")) db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = updatePendingCount; };
-window.editItem = id => { db.transaction("transferQueue","readonly").objectStore("transferQueue").get(id).onsuccess = e => { loadToForm(e.target.result); db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = () => { queueModal.classList.add("hidden"); updatePendingCount(); }; }; };
-window.loadToForm = function (items) {
-  if (!Array.isArray(items)) items = [items];
-  sourceContainer.innerHTML = "";
-  destContainer.innerHTML = "";
+window.deleteQueueItem = id => { if(confirm("Delete?")) db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = updatePendingCount; };
 
-  const first = items[0];
-  date.value = first.date;
-  narration.value = first.narration.replace(/ \(From\)| \(To\)/g, "");
-
-  items.forEach(item => {
-    const isFrom = item.narration.includes("(From)");
-    const side = isFrom ? 'source' : 'dest';
-    const container = side === 'source' ? sourceContainer : destContainer;
-
-    // Create row structure
-    const rowDiv = document.createElement('div');
-    rowDiv.className = 'mode-row';
-    const rowId = Date.now() + Math.random();
-    rowDiv.id = `row-${rowId}`;
-
-    const wrapperDiv = document.createElement('div');
-    wrapperDiv.className = 'swipe-wrapper';
-
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'mode-row-content';
-
-    // Create select for type
-    const typeSel = document.createElement('select');
-    typeSel.className = 'type-sel';
-    typeSel.setAttribute('onchange', `handleTypeChange(this, '${rowId}')`);
-    typeSel.required = true;
-    const types = ['', 'Cash', 'Upi', 'Debit', 'Credit', 'Rewards'];
-    types.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t;
-      opt.textContent = t || 'Type';
-      typeSel.appendChild(opt);
-    });
-    typeSel.value = item.type;
-
-    // Create select for account
-    const accSel = document.createElement('select');
-    accSel.className = 'acc-sel hidden';
-    accSel.id = `acc-${rowId}`;
-    accSel.required = false;
-
-    // Create amount input
-    const amtInput = document.createElement('input');
-    amtInput.type = 'number';
-    amtInput.className = 'amt-input';
-    amtInput.step = '0.01';
-    amtInput.placeholder = 'Amt';
-    amtInput.value = item.amount;
-    amtInput.setAttribute('oninput', 'calcSplitTotals()');
-    amtInput.required = true;
-
-    contentDiv.appendChild(typeSel);
-    contentDiv.appendChild(accSel);
-    contentDiv.appendChild(amtInput);
-    wrapperDiv.appendChild(contentDiv);
-    rowDiv.appendChild(wrapperDiv);
-    container.appendChild(rowDiv);
-
-    // Now populate the account dropdown and handle "Others"
-    handleTypeChange(typeSel, rowId);
-    const accSelElem = rowDiv.querySelector('.acc-sel');
-    if (item.type !== 'Cash') {
-      const masterList = [...bankAccounts, ...creditCards, ...rewardPlatforms];
-      if (masterList.includes(item.account)) {
-        accSelElem.value = item.account;
-      } else {
-        accSelElem.value = "Others";
-        const otherInput = rowDiv.querySelector('.other-acc-input');
-        if (otherInput) {
-          otherInput.value = item.account;
-          otherInput.classList.remove('hidden');
+window.editQueueItem = id => { 
+    db.transaction("transferQueue","readonly").objectStore("transferQueue").get(id).onsuccess = e => { 
+        const item = e.target.result;
+        sourceContainer.innerHTML = ""; destContainer.innerHTML = "";
+        
+        try {
+            const d = new Date(item.date);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            dateInp.value = `${yyyy}-${mm}-${dd}`;
+        } catch (err) {
+            dateInp.value = item.date;
         }
-      }
-    }
+        fetchLogsForDate(dateInp.value);
 
-    // **Enable swipe for this newly created row**
-    const wrapper = rowDiv.querySelector('.swipe-wrapper');
-    enableSwipeToDelete(wrapper);
-  });
-
-  calcSplitTotals();
-  checkCashVisibility();
+        refInp.value = item.refid || "";
+        narration.value = item.narration.replace(/ \(From\)| \(To\)/g, "");
+        
+        const side = item.narration.includes("(From)") ? 'source' : 'dest';
+        addMode(side, item);
+        
+        if (item.type === 'Cash' && item.denoms) {
+             Object.keys(item.denoms).forEach(dKey => {
+                const inp = document.querySelector(`.denom-inp[data-d="${dKey}"]`);
+                if(inp) inp.value = item.denoms[dKey];
+            });
+        }
+        calcCash();
+        checkCashVisibility();
+        
+        db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(id).onsuccess = () => { queueModal.classList.add("hidden"); updatePendingCount(); }; 
+    }; 
 };
 
-getEl("btnRepeat").onclick = () => { const last = JSON.parse(localStorage.getItem("lastTransferBatch")); if(last) loadToForm(last); else alert("No previous transfer found."); };
-getEl("btnConfirmFinal").onclick = executeSubmit; getEl("btnConfirmCancel").onclick = () => confirmModal.classList.add("hidden");
-btnViewQueue.onclick = () => queueModal.classList.remove("hidden"); btnSyncAll.onclick = () => { if(confirm("Sync all?")){ syncAborted=false; btnSyncAll.classList.add("hidden"); btnStopSync.classList.remove("hidden"); db.transaction("transferQueue").objectStore("transferQueue").getAll().onsuccess = async e=>{ const items=e.target.result; for(let i=0;i<items.length&&!syncAborted;i++){ btnStopSync.textContent=`🛑 Stop (${i+1}/${items.length})`; try{ await fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:JSON.stringify(items[i])}); db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(items[i].id).onsuccess=updatePendingCount; }catch(e){break;} } btnStopSync.classList.add("hidden"); btnSyncAll.classList.remove("hidden"); btnStopSync.textContent="🛑 Stop Syncing"; }; }; };
+getEl("btnRepeat").onclick = () => { 
+    const last = JSON.parse(localStorage.getItem("lastTransferState")); 
+    if(!last) { showToast("No previous transfer found."); return; }
+    
+    sourceContainer.innerHTML = ""; destContainer.innerHTML = "";
+    dateInp.value = last.date; refInp.value = ""; setRefPlaceholder(); narration.value = last.narration;
+    fetchLogsForDate(dateInp.value);
+    
+    last.sources.forEach(s => addMode('source', s));
+    last.dests.forEach(d => addMode('dest', d));
+    
+    const allRows = [...last.sources, ...last.dests];
+    allRows.forEach(r => {
+        if(r.type === 'Cash' && r.denoms) {
+            Object.keys(r.denoms).forEach(dKey => {
+                const inp = document.querySelector(`.denom-inp[data-d="${dKey}"]`);
+                if(inp && r.denoms[dKey]) inp.value = r.denoms[dKey];
+            });
+        }
+    });
+    calcCash(); checkCashVisibility();
+};
+
+getEl("btnConfirmFinal").onclick = () => executeSubmit(); 
+getEl("btnConfirmCancel").onclick = () => confirmModal.classList.add("hidden");
+btnViewQueue.onclick = () => queueModal.classList.remove("hidden"); 
+
+btnSyncAll.onclick = () => { 
+    if(confirm("Sync all?")){ 
+        syncAborted=false; btnSyncAll.classList.add("hidden"); btnStopSync.classList.remove("hidden"); 
+        db.transaction("transferQueue").objectStore("transferQueue").getAll().onsuccess = async e => { 
+            const items = e.target.result; 
+            for(let i=0; i<items.length && !syncAborted; i++){ 
+                btnStopSync.textContent=`🛑 Stop (${i+1}/${items.length})`; 
+                try { 
+                    await fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body:JSON.stringify(items[i])}); 
+                    await new Promise(res => db.transaction("transferQueue","readwrite").objectStore("transferQueue").delete(items[i].id).onsuccess = res);
+                } catch(e) { break; } 
+            } 
+            updatePendingCount();
+            btnStopSync.classList.add("hidden"); btnSyncAll.classList.remove("hidden"); btnStopSync.textContent="🛑 Stop Syncing"; 
+            showToast("Sync process finished.");
+        }; 
+    } 
+};
 btnStopSync.onclick = () => { syncAborted = true; };
-if(localStorage.getItem("selfTransferTheme") === "dark") { document.body.classList.add("dark"); themeToggle.textContent = "☀️"; }
+
+// Fetch initial logs for today on load
+fetchLogsForDate(dateInp.value);
+
 </script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('Invoice App Registered'))
-        .catch(err => console.log('PWA Registration Failed', err));
+      navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Registration Failed', err));
     });
   }
 </script>
